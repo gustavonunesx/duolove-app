@@ -99,32 +99,32 @@ feat(auth): add auth screens and multi-step onboarding UI
 
 ---
 
-## M3 — App Shell & Dashboard UI
+## M3 — App Shell & Dashboard UI ✅ CONCLUÍDA
 
 **Branch:** `feat/dashboard-ui`
 **Objetivo:** Shell autenticado do app com tab bar e dashboard completo usando dados mockados.
 
 ### Entregas
 
-- [ ] Tab bar (`app/(app)/_layout.tsx`) com ícones e identidade visual:
-  - [ ] 5 abas: Início, Calendário, Chat, Memórias, Configurações
-  - [ ] Ícones via `@expo/vector-icons` (Feather ou Ionicons)
-  - [ ] Tab bar com fundo `#1A1A2E` e tint rosa
-  - [ ] Badge de notificação na aba Chat
-- [ ] Header do app com avatar do usuário + avatar do parceiro(a) (mock)
-- [ ] Dashboard (`app/(app)/dashboard.tsx`):
-  - [ ] Card "Contador de dias juntos" com número animado (Reanimated)
-  - [ ] Card "Próximos eventos" (3 eventos mock com data e cor)
-  - [ ] Card "Datas comemorativas" (aniversários mock)
-  - [ ] Card "Status do parceiro(a)" (online/offline mock)
-  - [ ] Card "Última memória" com foto placeholder
-  - [ ] Scroll vertical com `ScrollView` ou `FlatList`
-- [ ] Estados vazios com copy afetivo ("Vocês ainda não têm eventos juntos 💭")
-- [ ] Skeleton loading para todos os cards (`components/ui/skeleton.tsx`)
-- [ ] Tela de configurações básica (`app/(app)/settings.tsx`):
-  - [ ] Avatar e nome do usuário
-  - [ ] Seção "Meu casal" (mock)
-  - [ ] Botão de logout (mock)
+- [x] Tab bar (`app/(app)/_layout.tsx`) com ícones e identidade visual:
+  - [x] 5 abas: Início, Calendário, Chat, Memórias, Configurações
+  - [x] Ícones via `@expo/vector-icons` (Feather ou Ionicons)
+  - [x] Tab bar com fundo `#1A1A2E` e tint rosa
+  - [x] Badge de notificação na aba Chat
+- [x] Header do app com avatar do usuário + avatar do parceiro(a) (mock)
+- [x] Dashboard (`app/(app)/dashboard.tsx`):
+  - [x] Card "Contador de dias juntos" com número animado (Reanimated)
+  - [x] Card "Próximos eventos" (3 eventos mock com data e cor)
+  - [x] Card "Datas comemorativas" (aniversários mock)
+  - [x] Card "Status do parceiro(a)" (online/offline mock)
+  - [x] Card "Última memória" com foto placeholder
+  - [x] Scroll vertical com `ScrollView` ou `FlatList`
+- [x] Estados vazios com copy afetivo ("Vocês ainda não têm eventos juntos 💭")
+- [x] Skeleton loading para todos os cards (`components/ui/skeleton.tsx`)
+- [x] Tela de configurações básica (`app/(app)/settings.tsx`):
+  - [x] Avatar e nome do usuário
+  - [x] Seção "Meu casal" (mock)
+  - [x] Botão de logout (mock)
 
 **Commit final:**
 ```
