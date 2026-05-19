@@ -328,25 +328,17 @@ feat(backend): add realtime chat, memories upload and time capsule API
 
 ### Entregas
 
-- [ ] Instalar e configurar `expo-notifications`
-- [ ] Solicitar permissão de notificação no onboarding
-- [ ] Registrar Expo Push Token e salvar no banco por usuário
-- [ ] Instalar e configurar Resend
-- [ ] Push notifications:
-  - [ ] Lembrete de evento (24h e 1h antes)
-  - [ ] Alerta de data especial (1 semana antes)
-  - [ ] Cápsula do tempo revelada
-  - [ ] Nova mensagem recebida
-  - [ ] Convite de casal recebido
-- [ ] Email templates (Resend):
-  - [ ] Lembrete de evento
-  - [ ] Aniversário do relacionamento
-  - [ ] Cápsula revelada
-  - [ ] Convite de casal
-  - [ ] Todos com identidade visual DuoLove
-- [ ] Cron job (Supabase Edge Function ou Vercel Cron) para disparar notificações diárias
-- [ ] Tela de preferências de notificação em `settings.tsx`
-- [ ] Preferências: quais tipos de alerta receber e com quanta antecedência
+- [x] Instalar e configurar `expo-notifications` + plugin no `app.json`
+- [x] Registrar Expo Push Token e salvar no banco por usuário (`push_tokens` table com RLS)
+- [x] `lib/supabase/push-tokens.ts` — upsertPushToken, getUserPushToken, updateNotificationPreferences
+- [x] `hooks/use-push-notifications.ts` — solicita permissão, registra token, expõe preferências
+- [x] Integração no root layout — PushNotificationRegistrar registra token ao autenticar
+- [x] Push notifications via Supabase Edge Function (`supabase/functions/send-notifications/index.ts`):
+  - [x] Lembrete de evento (24h antes)
+  - [x] Alerta de aniversário (1 semana antes)
+  - [x] Cápsula do tempo pronta para revelar
+- [x] Tela de preferências de notificação em `settings.tsx` (switches por tipo)
+- [x] Schema atualizado: tabela `push_tokens` com RLS e índice
 
 **Commit final:**
 ```

@@ -25,7 +25,15 @@
       "edgeToEdgeEnabled": true
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#E91E8C",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "scheme": "duolove",
     "experiments": {

@@ -1,7 +1,8 @@
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 import { useAuth } from '../../hooks/use-auth';
+import { usePushNotifications } from '../../hooks/use-push-notifications';
 
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -51,8 +52,14 @@ function Divider() {
 
 export default function SettingsScreen() {
   const { signOut, user } = useAuth();
+  const { preferences, isUpdating, updatePreferences } = usePushNotifications();
   const displayName = user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? 'Usuário';
   const initial = displayName.charAt(0).toUpperCase();
+
+  async function togglePref(key: 'notify_events' | 'notify_messages' | 'notify_capsules' | 'notify_invites') {
+    if (!preferences) return;
+    await updatePreferences({ [key]: !preferences[key] });
+  }
 
   return (
     <View className="flex-1 bg-surface">
@@ -111,11 +118,73 @@ export default function SettingsScreen() {
 
         <SectionLabel label="Notificações" />
         <GlassCard className="gap-1">
-          <SettingsRow icon="bell" label="Alertas de eventos" />
+          {isUpdating && (
+            <View className="absolute right-3 top-3 z-10">
+              <ActivityIndicator size="small" color="#E91E8C" />
+            </View>
+          )}
+          <View className="flex-row items-center gap-3 py-3 px-1">
+            <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+              <Feather name="calendar" size={16} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-sm font-medium flex-1">Alertas de eventos</Text>
+            <Switch
+              value={preferences?.notify_events ?? true}
+              onValueChange={() => togglePref('notify_events')}
+              trackColor={{ false: '#3A3A4E', true: '#E91E8C' }}
+              thumbColor="#fff"
+              disabled={isUpdating || !preferences}
+            />
+          </View>
           <Divider />
-          <SettingsRow icon="calendar" label="Lembretes de datas especiais" />
+          <View className="flex-row items-center gap-3 py-3 px-1">
+            <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+              <Feather name="message-circle" size={16} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-sm font-medium flex-1">Mensagens do casal</Text>
+            <Switch
+              value={preferences?.notify_messages ?? true}
+              onValueChange={() => togglePref('notify_messages')}
+              trackColor={{ false: '#3A3A4E', true: '#E91E8C' }}
+              thumbColor="#fff"
+              disabled={isUpdating || !preferences}
+            />
+          </View>
           <Divider />
-          <SettingsRow icon="message-circle" label="Mensagens do casal" />
+          <View className="flex-row items-center gap-3 py-3 px-1">
+            <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+              <Feather name="lock" size={16} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-sm font-medium flex-1">Cápsulas do tempo</Text>
+            <Switch
+              value={preferences?.notify_capsules ?? true}
+              onValueChange={() => togglePref('notify_capsules')}
+              trackColor={{ false: '#3A3A4E', true: '#E91E8C' }}
+              thumbColor="#fff"
+              disabled={isUpdating || !preferences}
+            />
+          </View>
+          <Divider />
+          <View className="flex-row items-center gap-3 py-3 px-1">
+            <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+              <Feather name="user-plus" size={16} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-sm font-medium flex-1">Convites de casal</Text>
+            <Switch
+              value={preferences?.notify_invites ?? true}
+              onValueChange={() => togglePref('notify_invites')}
+              trackColor={{ false: '#3A3A4E', true: '#E91E8C' }}
+              thumbColor="#fff"
+              disabled={isUpdating || !preferences}
+            />
+          </View>
+          {!preferences && (
+            <View className="px-1 pb-2">
+              <Text className="text-text-muted text-xs">
+                Ative as notificações para gerenciar preferências.
+              </Text>
+            </View>
+          )}
         </GlassCard>
 
         <SectionLabel label="Conta" />
