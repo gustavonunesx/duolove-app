@@ -87,7 +87,7 @@ duolove-app/
 ### Estilo Visual
 - Dark-first: modo escuro é a experiência principal
 - Bordas totalmente arredondadas (`rounded-2xl`, `rounded-full`)
-- Animações com React Native Reanimated
+- Animações com `Animated` do React Native (M2–M6) → Reanimated após EAS Build (M12)
 - Tom íntimo e afetivo — nunca corporativo
 
 ---
@@ -105,6 +105,36 @@ duolove-app/
 - Imports diretos — sem barrel exports (`index.ts`)
 - Formulários: `react-hook-form` + `zod`
 - Realtime: Supabase Realtime channels para sync de calendário e chat
+
+---
+
+## ⚠️ Restrições de Compatibilidade com Expo Go
+
+O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações importantes:
+
+### Pacotes que NÃO funcionam no Expo Go (requerem EAS Build)
+- `react-native-reanimated` v4+ — usar v3.16.x até M12
+- Qualquer módulo nativo não incluído no Expo Go SDK
+
+### Animações
+- **Usar `Animated` do React Native** (não Reanimated) em M2–M11
+- Reanimated só deve ser reintroduzido na **M12 (Polish)**, após configurar EAS Build
+- O plugin `react-native-reanimated/plugin` no `babel.config.js` deve acompanhar a versão instalada
+
+### Versões fixadas (não alterar sem testar no Expo Go)
+| Pacote | Versão | Motivo |
+|---|---|---|
+| `react-native-reanimated` | `~3.16.7` | v4 quebra no Expo Go |
+| `tailwindcss` | `^3.x` | NativeWind v4 exige Tailwind v3 |
+
+### Plugins no app.json
+- Só adicionar plugins de pacotes **já instalados**
+- `expo-notifications` → adicionar apenas na M10
+- `@stripe/stripe-react-native` → adicionar apenas na M11
+
+### Entrypoint
+- `index.ts` deve conter apenas `import 'expo-router/entry'`
+- Não usar `registerRootComponent` com Expo Router
 
 ---
 
