@@ -153,8 +153,8 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M5 | `feat/chat-ui` | Chat e reações (mock) | ✅ Concluída |
 | M6 | `feat/memories-ui` | Timeline de memórias e upload UI | ✅ Concluída |
 | M7 | `feat/backend-foundation` | Supabase, schema SQL, auth real | ✅ Concluída |
-| M8 | `feat/backend-calendar` | API de eventos + Realtime sync | ⬜ Próxima |
-| M9 | `feat/backend-social` | Chat, memórias e upload real | ⬜ |
+| M8 | `feat/backend-calendar` | API de eventos + Realtime sync | ✅ Concluída |
+| M9 | `feat/backend-social` | Chat, memórias e upload real | ⬜ Próxima |
 | M10 | `feat/notifications` | Push notifications (Expo) + email (Resend) | ⬜ |
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ⬜ |
 | M12 | `feat/polish` | Animações, acessibilidade, performance | ⬜ |
