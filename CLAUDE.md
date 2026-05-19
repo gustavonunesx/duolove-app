@@ -147,8 +147,8 @@ O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações
 | M3 | `feat/dashboard-ui` | Dashboard, counter, shell do app | ✅ Concluída |
 | M4 | `feat/calendar-ui` | Calendário completo (mock data) | ✅ Concluída |
 | M5 | `feat/chat-ui` | Chat e reações (mock) | ✅ Concluída |
-| M6 | `feat/memories-ui` | Timeline de memórias e upload UI | ⬜ Próxima |
-| M7 | `feat/backend-foundation` | Supabase, Prisma schema, auth real | ⬜ |
+| M6 | `feat/memories-ui` | Timeline de memórias e upload UI | ✅ Concluída |
+| M7 | `feat/backend-foundation` | Supabase, Prisma schema, auth real | ⬜ Próxima |
 | M8 | `feat/backend-calendar` | API de eventos + Realtime sync | ⬜ |
 | M9 | `feat/backend-social` | Chat, memórias e upload real | ⬜ |
 | M10 | `feat/notifications` | Push notifications (Expo) + email (Resend) | ⬜ |
