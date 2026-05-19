@@ -133,31 +133,31 @@ feat(dashboard): add app shell with tab bar and dashboard mock UI
 
 ---
 
-## M4 — Calendário UI
+## M4 — Calendário UI ✅ CONCLUÍDA
 
 **Branch:** `feat/calendar-ui`
 **Objetivo:** Calendário completo e interativo com dados mockados.
 
 ### Entregas
 
-- [ ] Página de calendário (`app/(app)/calendar.tsx`)
-- [ ] Visualização mensal: grid de dias com pontos de evento coloridos
-- [ ] Visualização semanal: lista de eventos por dia da semana
-- [ ] Visualização diária: lista de eventos do dia com horários
-- [ ] Toggle entre views (segmented control nativo ou tabs)
-- [ ] Navegação por mês/semana (swipe ou botões anterior/próximo)
-- [ ] Bottom sheet de criação de evento:
-  - [ ] Título, descrição, data/hora início e fim
-  - [ ] Tipo: pessoal, casal, data especial, viagem
-  - [ ] Cor personalizável (6 opções)
-  - [ ] Visibilidade: privado ou compartilhado
-- [ ] Bottom sheet de visualização de evento com detalhes e avatar do criador
-- [ ] Indicador visual de quem criou o evento (avatar no grid)
-- [ ] Legenda de cores por tipo
-- [ ] Filtro por tipo (todos / só do casal / só meus)
-- [ ] Highlight do dia atual e de datas especiais
-- [ ] Componente `components/calendar/event-card.tsx`
-- [ ] Componente `components/calendar/day-cell.tsx`
+- [x] Página de calendário (`app/(app)/calendar.tsx`)
+- [x] Visualização mensal: grid de dias com pontos de evento coloridos
+- [x] Visualização semanal: lista de eventos por dia da semana
+- [x] Visualização diária: lista de eventos do dia com horários
+- [x] Toggle entre views (segmented control nativo ou tabs)
+- [x] Navegação por mês/semana (swipe ou botões anterior/próximo)
+- [x] Bottom sheet de criação de evento:
+  - [x] Título, descrição, data/hora início e fim
+  - [x] Tipo: pessoal, casal, data especial, viagem
+  - [x] Cor personalizável (6 opções)
+  - [x] Visibilidade: privado ou compartilhado
+- [x] Bottom sheet de visualização de evento com detalhes e avatar do criador
+- [x] Indicador visual de quem criou o evento (avatar no grid)
+- [x] Legenda de cores por tipo
+- [x] Filtro por tipo (todos / só do casal / só meus)
+- [x] Highlight do dia atual e de datas especiais
+- [x] Componente `components/calendar/event-card.tsx`
+- [x] Componente `components/calendar/day-cell.tsx`
 
 **Commit final:**
 ```
