@@ -100,6 +100,19 @@ create table if not exists public.message_reactions (
   unique(message_id, user_id, emoji)
 );
 
+-- Tabela de push tokens (Expo Push Notifications)
+create table if not exists public.push_tokens (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  token text not null,
+  notify_events boolean default true not null,
+  notify_messages boolean default true not null,
+  notify_capsules boolean default true not null,
+  notify_invites boolean default true not null,
+  created_at timestamptz default now() not null,
+  unique(user_id, token)
+);
+
 -- Tabela de assinaturas
 create table if not exists public.subscriptions (
   id uuid default uuid_generate_v4() primary key,
@@ -143,6 +156,7 @@ create trigger on_auth_user_created
 -- =============================================
 
 alter table public.users enable row level security;
+alter table public.push_tokens enable row level security;
 alter table public.couples enable row level security;
 alter table public.couple_invites enable row level security;
 alter table public.events enable row level security;
@@ -162,6 +176,19 @@ as $$
   where user1_id = auth.uid() or user2_id = auth.uid()
   limit 1;
 $$;
+
+-- push_tokens: cada usuário gerencia seus próprios tokens
+create policy "push_tokens: select own" on public.push_tokens
+  for select using (user_id = auth.uid());
+
+create policy "push_tokens: insert own" on public.push_tokens
+  for insert with check (user_id = auth.uid());
+
+create policy "push_tokens: update own" on public.push_tokens
+  for update using (user_id = auth.uid());
+
+create policy "push_tokens: delete own" on public.push_tokens
+  for delete using (user_id = auth.uid());
 
 -- users: cada usuário vê e edita apenas o próprio perfil
 create policy "users: select own" on public.users
@@ -272,6 +299,7 @@ create index if not exists idx_memories_couple_id on public.memories(couple_id);
 create index if not exists idx_memories_date on public.memories(date);
 create index if not exists idx_couple_invites_token on public.couple_invites(token);
 create index if not exists idx_capsules_couple_id on public.capsules(couple_id);
+create index if not exists idx_push_tokens_user_id on public.push_tokens(user_id);
 create index if not exists idx_message_reactions_message_id on public.message_reactions(message_id);
 
 -- =============================================

@@ -4,6 +4,7 @@ import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthListener, useAuth } from '../hooks/use-auth';
+import { usePushNotifications } from '../hooks/use-push-notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +14,11 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function PushNotificationRegistrar() {
+  usePushNotifications();
+  return null;
+}
 
 function RouteGuard() {
   useAuthListener();
@@ -40,6 +46,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <StatusBar style="light" />
       <RouteGuard />
+      <PushNotificationRegistrar />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D0D' } }} />
     </QueryClientProvider>
   );

@@ -203,6 +203,34 @@ export interface Database {
         };
         Update: never;
       };
+      push_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          token: string;
+          notify_events: boolean;
+          notify_messages: boolean;
+          notify_capsules: boolean;
+          notify_invites: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          notify_events?: boolean;
+          notify_messages?: boolean;
+          notify_capsules?: boolean;
+          notify_invites?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          notify_events?: boolean;
+          notify_messages?: boolean;
+          notify_capsules?: boolean;
+          notify_invites?: boolean;
+        };
+      };
       subscriptions: {
         Row: {
           id: string;
