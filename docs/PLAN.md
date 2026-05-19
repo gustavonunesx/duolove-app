@@ -56,41 +56,41 @@ feat(setup): initialize Expo project with NativeWind and Expo Router
 
 ---
 
-## M2 — Auth UI & Onboarding
+## M2 — Auth UI & Onboarding ✅ CONCLUÍDA
 
 **Branch:** `feat/auth-ui`
 **Objetivo:** Todas as telas de autenticação e onboarding com UI completa e navegação funcional. Sem auth real — formulários com mock/redirect.
 
 ### Entregas
 
-- [ ] Layout compartilhado de auth (`app/(auth)/_layout.tsx`) com gradiente de fundo e logo
-- [ ] Tela de login (`app/(auth)/login.tsx`):
-  - [ ] Campo email + senha
-  - [ ] Botão "Entrar com Google"
-  - [ ] Botão "Entrar com Apple"
-  - [ ] Link para cadastro e recuperação de senha
-  - [ ] Estados de loading e erro
-- [ ] Tela de cadastro (`app/(auth)/signup.tsx`):
-  - [ ] Nome, email, senha
-  - [ ] Validação com `react-hook-form` + Zod
-  - [ ] Estados de loading e erro
-- [ ] Tela de recuperação de senha (`app/(auth)/forgot-password.tsx`)
-- [ ] Tela de convite do parceiro(a) (`app/(auth)/invite.tsx`):
-  - [ ] Input para código ou link de convite
-  - [ ] Preview do perfil de quem convidou (mock)
-- [ ] Onboarding multi-step (`app/onboarding/`):
-  - [ ] Layout com barra de progresso animada
-  - [ ] Step 1 (`step-1.tsx`): nome e foto de perfil (câmera ou galeria — UI only)
-  - [ ] Step 2 (`step-2.tsx`): data de início do relacionamento (date picker nativo)
-  - [ ] Step 3 (`step-3.tsx`): escolha de tema visual (rosa, lilás, vinho) com preview
-  - [ ] Step 4 (`step-4.tsx`): envio de convite ao parceiro(a) (share link mock)
-  - [ ] Animação de slide entre steps com Reanimated
-- [ ] Componentes de UI base:
-  - [ ] `components/ui/button.tsx` (variantes: primary, outline, ghost, social)
-  - [ ] `components/ui/input.tsx` (com label, erro, ícone)
-  - [ ] `components/ui/glass-card.tsx`
-  - [ ] `components/shared/logo.tsx`
-- [ ] Redirect final do onboarding para `/(app)/dashboard`
+- [x] Layout compartilhado de auth (`app/(auth)/_layout.tsx`) com gradiente de fundo e logo
+- [x] Tela de login (`app/(auth)/login.tsx`):
+  - [x] Campo email + senha
+  - [x] Botão "Entrar com Google"
+  - [x] Botão "Entrar com Apple"
+  - [x] Link para cadastro e recuperação de senha
+  - [x] Estados de loading e erro
+- [x] Tela de cadastro (`app/(auth)/signup.tsx`):
+  - [x] Nome, email, senha
+  - [x] Validação com `react-hook-form` + Zod
+  - [x] Estados de loading e erro
+- [x] Tela de recuperação de senha (`app/(auth)/forgot-password.tsx`)
+- [x] Tela de convite do parceiro(a) (`app/(auth)/invite.tsx`):
+  - [x] Input para código ou link de convite
+  - [x] Preview do perfil de quem convidou (mock)
+- [x] Onboarding multi-step (`app/onboarding/`):
+  - [x] Layout com barra de progresso animada
+  - [x] Step 1 (`step-1.tsx`): nome e foto de perfil (câmera ou galeria — UI only)
+  - [x] Step 2 (`step-2.tsx`): data de início do relacionamento (date picker nativo)
+  - [x] Step 3 (`step-3.tsx`): escolha de tema visual (rosa, lilás, vinho) com preview
+  - [x] Step 4 (`step-4.tsx`): envio de convite ao parceiro(a) (share link mock)
+  - [x] Animação de progresso entre steps com Reanimated
+- [x] Componentes de UI base:
+  - [x] `components/ui/button.tsx` (variantes: primary, outline, ghost, social)
+  - [x] `components/ui/input.tsx` (com label, erro, ícone)
+  - [x] `components/ui/glass-card.tsx`
+  - [x] `components/shared/logo.tsx`
+- [x] Redirect final do onboarding para `/(app)/dashboard`
 
 **Commit final:**
 ```

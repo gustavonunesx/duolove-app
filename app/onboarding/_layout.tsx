@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet } from 'react-native';
 
-export default function AuthLayout() {
+export default function OnboardingLayout() {
   return (
     <>
       <LinearGradient
