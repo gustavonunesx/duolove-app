@@ -354,18 +354,16 @@ feat(notifications): add push notifications and email alerts
 
 ### Entregas
 
-- [ ] Criar produtos e preços no Stripe (mensal e anual)
-- [ ] Instalar `@stripe/stripe-react-native`
-- [ ] `POST /api/stripe/checkout` — criar sessão de pagamento
-- [ ] `POST /api/stripe/portal` — portal de gerenciamento do cliente
-- [ ] `POST /api/webhooks/stripe` — webhook para sincronizar status da assinatura
-- [ ] Helper `isPremium(coupleId)` para verificar plano ativo
-- [ ] Componente `<PremiumGate>` para bloquear features no app
-- [ ] Features premium bloqueadas para free: temas exclusivos, retrospectiva mensal, storage extra
-- [ ] Tela de upgrade em `settings.tsx` com comparativo de planos
-- [ ] Modal de upgrade contextual ao tentar acessar feature premium
-- [ ] Tela de gerenciamento de assinatura com portal Stripe
-- [ ] Página de sucesso após checkout
+- [x] Instalar `@stripe/stripe-react-native` + plugin no `app.json`
+- [x] `lib/supabase/subscriptions.ts` — getSubscription, isPremiumActive
+- [x] `hooks/use-subscription.ts` — React Query, expõe `isPremium` reativo
+- [x] `components/ui/premium-gate.tsx` — bloqueia features com overlay de upgrade
+- [x] Edge Functions Supabase:
+  - [x] `stripe-checkout` — cria Checkout Session (mensal/anual)
+  - [x] `stripe-portal` — abre Customer Portal para gerenciar assinatura
+  - [x] `stripe-webhook` — sincroniza status via eventos `checkout.session.completed`, `customer.subscription.updated/deleted`
+- [x] `settings.tsx` — modal de upgrade com comparativo de planos, gestão via portal Stripe
+- [x] `app/premium-success.tsx` — tela animada de sucesso após checkout
 
 **Commit final:**
 ```
