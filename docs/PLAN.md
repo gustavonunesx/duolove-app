@@ -197,31 +197,31 @@ feat(chat): add messaging UI with reactions and event comments
 
 ---
 
-## M6 — Memórias UI
+## M6 — Memórias UI ✅ CONCLUÍDA
 
 **Branch:** `feat/memories-ui`
 **Objetivo:** Espaço de memórias do casal — timeline, fotos e cápsula do tempo, tudo no front com mock.
 
 ### Entregas
 
-- [ ] Página de memórias (`app/(app)/memories.tsx`)
-- [ ] Timeline cronológica de memórias com fotos (dados mock)
-- [ ] Card de memória: foto, data, título e descrição curta
-- [ ] Modal de visualização ampliada (lightbox com `expo-image` ou similar)
-- [ ] Bottom sheet de criação de memória:
-  - [ ] Seleção de foto (câmera ou galeria — UI only com `expo-image-picker`)
-  - [ ] Título, descrição, data
-  - [ ] Tag de tipo: viagem, date, aniversário, milestone, dia a dia
-- [ ] Filtro por tipo e por período
-- [ ] Galeria em grid (modo alternativo à timeline — toggle)
-- [ ] Seção "Cápsula do Tempo":
-  - [ ] Form para escrever mensagem e selecionar data de revelação
-  - [ ] Card de cápsula lacrada com countdown animado
-- [ ] Estado vazio: "O primeiro capítulo de vocês começa aqui ✨"
-- [ ] Componentes:
-  - [ ] `components/memories/memory-card.tsx`
-  - [ ] `components/memories/memory-lightbox.tsx`
-  - [ ] `components/memories/capsule-card.tsx`
+- [x] Página de memórias (`app/(app)/memories.tsx`)
+- [x] Timeline cronológica de memórias com fotos (dados mock)
+- [x] Card de memória: foto, data, título e descrição curta
+- [x] Modal de visualização ampliada (lightbox com `expo-image` ou similar)
+- [x] Bottom sheet de criação de memória:
+  - [x] Seleção de foto (câmera ou galeria — UI only com `expo-image-picker`)
+  - [x] Título, descrição, data
+  - [x] Tag de tipo: viagem, date, aniversário, milestone, dia a dia
+- [x] Filtro por tipo e por período
+- [x] Galeria em grid (modo alternativo à timeline — toggle)
+- [x] Seção "Cápsula do Tempo":
+  - [x] Form para escrever mensagem e selecionar data de revelação
+  - [x] Card de cápsula lacrada com countdown animado
+- [x] Estado vazio: "O primeiro capítulo de vocês começa aqui ✨"
+- [x] Componentes:
+  - [x] `components/memories/memory-card.tsx`
+  - [x] `components/memories/memory-lightbox.tsx`
+  - [x] `components/memories/capsule-card.tsx`
 
 **Commit final:**
 ```
