@@ -29,20 +29,24 @@ export function Skeleton({ width, height = 16, rounded = 'md', className, style,
     return () => pulse.stop();
   }, [opacity]);
 
+  const fixedWidth = typeof width === 'number' ? width : undefined;
+
   return (
-    <Animated.View
-      {...props}
-      style={[
-        {
-          backgroundColor: '#2A2A4E',
-          width: width ?? '100%',
-          height,
-          borderRadius: roundedMap[rounded],
-          opacity,
-        },
-        style,
-      ]}
-    />
+    <View style={fixedWidth === undefined ? { width: '100%' } : { width: fixedWidth }}>
+      <Animated.View
+        {...props}
+        style={[
+          {
+            backgroundColor: '#2A2A4E',
+            height,
+            borderRadius: roundedMap[rounded],
+            opacity,
+          },
+          fixedWidth !== undefined && { width: fixedWidth },
+          style,
+        ]}
+      />
+    </View>
   );
 }
 

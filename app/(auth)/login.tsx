@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Logo } from '../../components/shared/logo';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { useAuth } from '../../hooks/use-auth';
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -19,18 +20,23 @@ type FormData = z.infer<typeof schema>;
 export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signInWithEmail } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (_data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
-    // Mock: navigate to app after delay
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signInWithEmail(data.email, data.password);
       router.replace('/(app)/dashboard');
-    }, 1200);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao entrar. Verifique suas credenciais.';
+      Alert.alert('Erro', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

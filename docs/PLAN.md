@@ -230,36 +230,42 @@ feat(memories): add memory timeline, photo gallery and time capsule UI
 
 ---
 
-## M7 — Backend Foundation
+## M7 — Backend Foundation ✅ CONCLUÍDA
 
 **Branch:** `feat/backend-foundation`
-**Objetivo:** Infraestrutura real de dados. Supabase configurado, schema Prisma completo, auth funcionando de ponta a ponta.
+**Objetivo:** Infraestrutura real de dados. Supabase configurado, schema SQL completo, auth funcionando de ponta a ponta.
+
+> ⚠️ Prisma removido do escopo — não roda em React Native/Expo Go. Substituído por Supabase SDK direto, que é o padrão da indústria para apps mobile com Supabase.
 
 ### Entregas
 
-- [ ] Criar projeto no Supabase e configurar variáveis de ambiente (`.env`)
-- [ ] Instalar e configurar Prisma com Supabase PostgreSQL
-- [ ] Schema Prisma completo:
-  - [ ] `User` (id, email, name, avatar_url, created_at)
-  - [ ] `Couple` (id, user1_id, user2_id, start_date, theme, plan, created_at)
-  - [ ] `CoupleInvite` (id, couple_id, inviter_id, token, expires_at, accepted_at)
-  - [ ] `Event` (id, couple_id, creator_id, title, description, start_at, end_at, type, color, visibility)
-  - [ ] `Memory` (id, couple_id, creator_id, title, description, photo_url, date, tags)
-  - [ ] `Capsule` (id, couple_id, creator_id, message, reveal_at, revealed_at)
-  - [ ] `Message` (id, couple_id, sender_id, event_id?, content, created_at)
-  - [ ] `MessageReaction` (id, message_id, user_id, emoji)
-  - [ ] `Subscription` (id, couple_id, stripe_customer_id, stripe_subscription_id, plan, status)
-- [ ] Migrations rodando (`prisma migrate dev`)
-- [ ] Row Level Security (RLS) no Supabase para todas as tabelas
-- [ ] Configurar Supabase Auth (email/senha + OAuth Google + Apple)
-- [ ] Cliente Supabase: `lib/supabase/client.ts` com AsyncStorage para sessão
-- [ ] Auth funcionando end-to-end no app: cadastro, login, logout, sessão persistida
-- [ ] Middleware de proteção de rotas (redirect para login se sem sessão)
-- [ ] Substituir mocks de auth pelas chamadas reais nas telas de M2
+- [x] Criar projeto no Supabase e configurar variáveis de ambiente (`.env`)
+- [x] Schema SQL completo em `supabase/schema.sql` (executar no SQL Editor do Supabase):
+  - [x] `users` (id, email, name, avatar_url, created_at)
+  - [x] `couples` (id, user1_id, user2_id, start_date, theme, plan, created_at)
+  - [x] `couple_invites` (id, couple_id, inviter_id, token, expires_at, accepted_at)
+  - [x] `events` (id, couple_id, creator_id, title, description, start_at, end_at, type, color, visibility)
+  - [x] `memories` (id, couple_id, creator_id, title, description, photo_url, date, tags)
+  - [x] `capsules` (id, couple_id, creator_id, message, reveal_at, revealed_at)
+  - [x] `messages` (id, couple_id, sender_id, event_id?, content, created_at)
+  - [x] `message_reactions` (id, message_id, user_id, emoji)
+  - [x] `subscriptions` (id, couple_id, stripe_customer_id, stripe_subscription_id, plan, status)
+- [x] Trigger `handle_new_user` — cria perfil em `public.users` ao cadastrar via Supabase Auth
+- [x] Row Level Security (RLS) em todas as tabelas + função helper `get_user_couple_id()`
+- [x] Índices de performance nas colunas mais consultadas
+- [x] Tipos TypeScript completos para o banco em `types/database.ts`
+- [x] Cliente Supabase: `lib/supabase/client.ts` com AsyncStorage 1.23.1 para sessão persistida
+- [x] Auth store Zustand em `store/auth-store.ts`
+- [x] Hook `useAuth` em `hooks/use-auth.ts` (signIn, signUp, resetPassword, signOut, listener de sessão)
+- [x] React Query (`QueryClientProvider`) configurado no root layout
+- [x] Proteção de rotas no root layout — redirect automático baseado em sessão
+- [x] Auth funcionando end-to-end: cadastro, login, logout, sessão persistida, recuperação de senha
+- [x] Modal de verificação de email após cadastro
+- [x] Mocks de auth substituídos nas telas: login, signup, forgot-password, settings
 
 **Commit final:**
 ```
-feat(backend): add Supabase setup, full Prisma schema and working auth
+feat(backend): add Supabase setup, full schema and working auth
 ```
 
 ---

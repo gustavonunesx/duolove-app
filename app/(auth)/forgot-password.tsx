@@ -1,4 +1,4 @@
-import { View, Text, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { GlassCard } from '../../components/ui/glass-card';
+import { useAuth } from '../../hooks/use-auth';
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -18,17 +19,23 @@ type FormData = z.infer<typeof schema>;
 export default function ForgotPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const { resetPassword } = useAuth();
 
   const { control, handleSubmit, getValues, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (_data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await resetPassword(data.email);
       setSent(true);
-    }, 1200);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao enviar email. Tente novamente.';
+      Alert.alert('Erro', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sent) {

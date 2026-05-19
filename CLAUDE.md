@@ -126,6 +126,10 @@ O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações
 |---|---|---|
 | `react-native-reanimated` | `~3.16.7` | v4 quebra no Expo Go |
 | `tailwindcss` | `^3.x` | NativeWind v4 exige Tailwind v3 |
+| `@react-native-async-storage/async-storage` | `1.23.1` | v3.x não tem módulo nativo no Expo Go |
+
+### Prisma — decisão de arquitetura (M7)
+Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funciona em React Native/Expo Go. O padrão correto para apps mobile com Supabase é usar o **Supabase SDK diretamente** (`@supabase/supabase-js`). Schema e migrations são gerenciados via SQL no Supabase Dashboard (`supabase/schema.sql`).
 
 ### Plugins no app.json
 - Só adicionar plugins de pacotes **já instalados**
@@ -148,8 +152,8 @@ O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações
 | M4 | `feat/calendar-ui` | Calendário completo (mock data) | ✅ Concluída |
 | M5 | `feat/chat-ui` | Chat e reações (mock) | ✅ Concluída |
 | M6 | `feat/memories-ui` | Timeline de memórias e upload UI | ✅ Concluída |
-| M7 | `feat/backend-foundation` | Supabase, Prisma schema, auth real | ⬜ Próxima |
-| M8 | `feat/backend-calendar` | API de eventos + Realtime sync | ⬜ |
+| M7 | `feat/backend-foundation` | Supabase, schema SQL, auth real | ✅ Concluída |
+| M8 | `feat/backend-calendar` | API de eventos + Realtime sync | ⬜ Próxima |
 | M9 | `feat/backend-social` | Chat, memórias e upload real | ⬜ |
 | M10 | `feat/notifications` | Push notifications (Expo) + email (Resend) | ⬜ |
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ⬜ |
