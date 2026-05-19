@@ -97,6 +97,8 @@ duolove-app/
 - TypeScript estrito — sem `any`
 - Zod para validação de runtime em formulários
 - NativeWind para estilização (classes Tailwind no JSX nativo)
+- Estado servidor: React Query (`@tanstack/react-query`)
+- Estado cliente: Zustand
 - Supabase client em `lib/supabase/client.ts`
 - Variáveis de ambiente com prefixo `EXPO_PUBLIC_` para acesso no cliente
 - Nomes de arquivo: `kebab-case`; componentes: `PascalCase`
@@ -141,11 +143,11 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 1. Criar branch: `git checkout -b feat/nome-da-milestone`
 
 **Final de cada milestone:**
-1. Marcar todas as entregas como `[x]` no CLAUDE.md
-2. Atualizar status da milestone na tabela acima
-3. Commit final com a mensagem definida na milestone
+1. Marcar todas as entregas como `[x]` no `docs/PLAN.md`
+2. Atualizar status da milestone na tabela de Milestones acima (neste arquivo)
+3. Commit final com a mensagem exata definida no bloco `Commit final` do PLAN.md
 4. Push: `git push -u origin <branch>`
 5. PR: `gh pr create`
 6. Merge: `gh pr merge --merge --delete-branch`
 7. Deletar branch local: `git branch -d <branch>`
-8. Voltar para main: `git checkout main && git pull`
+8. Voltar para master: `git checkout master && git pull`

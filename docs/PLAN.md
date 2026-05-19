@@ -464,6 +464,6 @@ M8 Backend Calendar ──► M9 Backend Social ──► M10 Notificações ─
 
 ## Regras de Branch
 
-- `main` — produção, protegida. Só recebe merge via PR após cada milestone completa.
+- `master` — produção, protegida. Só recebe merge via PR após cada milestone completa.
 - Cada milestone vive na sua própria branch.
 - Commits no padrão Conventional Commits: `type(scope): description`
