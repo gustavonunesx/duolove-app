@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, Modal } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Logo } from '../../components/shared/logo';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { GlassCard } from '../../components/ui/glass-card';
 import { useAuth } from '../../hooks/use-auth';
 
 const schema = z.object({
@@ -26,6 +27,7 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmedEmail, setConfirmedEmail] = useState('');
   const { signUpWithEmail } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -36,7 +38,7 @@ export default function SignupScreen() {
     setLoading(true);
     try {
       await signUpWithEmail(data.email, data.password, data.name);
-      router.push('/onboarding/step-1');
+      setConfirmedEmail(data.email);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.';
       Alert.alert('Erro', message);
@@ -46,10 +48,44 @@ export default function SignupScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <>
+      <Modal
+        visible={!!confirmedEmail}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
+          <GlassCard className="items-center w-full p-8">
+            <View className="w-20 h-20 rounded-full bg-primary/20 items-center justify-center mb-6">
+              <Ionicons name="mail-open-outline" size={40} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-2xl font-bold text-center">
+              Verifique seu email
+            </Text>
+            <Text className="text-text-muted text-base text-center mt-3 leading-6">
+              Enviamos um link de confirmação para{'\n'}
+              <Text className="text-primary font-semibold">{confirmedEmail}</Text>
+            </Text>
+            <Text className="text-text-muted text-sm text-center mt-3 leading-5">
+              Abra o email e clique no link para ativar sua conta antes de continuar.
+            </Text>
+            <View className="w-full mt-8 gap-3">
+              <Button onPress={() => router.replace('/(auth)/login')}>
+                Ir para o login
+              </Button>
+              <Button variant="ghost" onPress={() => setConfirmedEmail('')}>
+                Voltar e corrigir email
+              </Button>
+            </View>
+          </GlassCard>
+        </View>
+      </Modal>
+
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
@@ -182,5 +218,6 @@ export default function SignupScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </>
   );
 }
