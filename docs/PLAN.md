@@ -270,28 +270,25 @@ feat(backend): add Supabase setup, full schema and working auth
 
 ---
 
-## M8 — Backend Calendário
+## M8 — Backend Calendário ✅ CONCLUÍDA
 
 **Branch:** `feat/backend-calendar`
-**Objetivo:** API de eventos conectada ao banco, sincronização em tempo real via Supabase Realtime.
+**Objetivo:** Eventos conectados ao banco, sincronização em tempo real via Supabase Realtime, fluxo de invite de casal real.
+
+> Sem API routes — queries via Supabase SDK direto no cliente (padrão da M7).
 
 ### Entregas
 
-- [ ] `POST /api/events` — criar evento
-- [ ] `GET /api/events` — listar eventos do casal (com filtros por data, tipo)
-- [ ] `PATCH /api/events/[id]` — atualizar evento
-- [ ] `DELETE /api/events/[id]` — deletar evento
-- [ ] Validação de todas as rotas com Zod
-- [ ] Autorização: usuário só acessa eventos do próprio casal
-- [ ] Hook `useEvents` no app consumindo a API
-- [ ] Substituir dados mock do calendário por dados reais
-- [ ] Supabase Realtime: canal `couple:{id}:events` para sync em tempo real
-- [ ] Indicador visual de sincronização no app
-- [ ] Fluxo de invite de casal:
-  - [ ] `POST /api/couple/invite` — gerar token de convite
-  - [ ] `GET /api/couple/invite/[token]` — validar convite
-  - [ ] `POST /api/couple/invite/[token]/accept` — aceitar convite e linkar contas
-- [ ] Substituir mock de couple linking pela chamada real (M2)
+- [x] `lib/supabase/events.ts` — getEvents, createEvent, updateEvent, deleteEvent
+- [x] `lib/supabase/couples.ts` — getUserCouple, createCouple, generateInvite, validateInvite, acceptInvite
+- [x] `hooks/use-couple.ts` — React Query para couple_id reativo + ensureCouple + generateInvite
+- [x] `hooks/use-events.ts` — React Query + Supabase Realtime no canal `couple:{id}:events`
+- [x] Substituir dados mock do calendário por dados reais (`calendar.tsx`)
+- [x] Indicador de loading (ActivityIndicator) no header do calendário
+- [x] Fluxo de invite de casal real:
+  - [x] `invite.tsx` — validar token real via Supabase, aceitar convite e linkar contas
+  - [x] `onboarding/step-4.tsx` — gera token real ao entrar no step, mostra código e compartilha
+- [x] Tipagem local explícita (EventRow, CoupleRow, InviteRow) — sem generic `Database` no cliente Supabase
 
 **Commit final:**
 ```

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { GlassCard } from '../../components/ui/glass-card';
+import { validateInvite, acceptInvite } from '../../lib/supabase/couples';
+import { useAuth } from '../../hooks/use-auth';
 
 const schema = z.object({
   code: z.string().min(6, 'Código deve ter ao menos 6 caracteres'),
@@ -15,29 +17,50 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const MOCK_INVITER = {
-  name: 'Ana Lima',
-  avatar: '👩',
-};
+interface InviterInfo {
+  name: string;
+  token: string;
+}
 
 export default function InviteScreen() {
   const [loading, setLoading] = useState(false);
-  const [previewing, setPreviewing] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+  const [inviter, setInviter] = useState<InviterInfo | null>(null);
+  const { user } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onPreview = async (_data: FormData) => {
+  const onPreview = async (data: FormData) => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const result = await validateInvite(data.code);
+      if (!result) {
+        Alert.alert('Código inválido', 'Este código não existe ou já expirou. Peça um novo ao seu(sua) parceiro(a).');
+        return;
+      }
+      const name = result.users?.name ?? 'Seu(sua) parceiro(a)';
+      setInviter({ name, token: data.code });
+    } catch {
+      Alert.alert('Erro', 'Não foi possível verificar o código. Tente novamente.');
+    } finally {
       setLoading(false);
-      setPreviewing(true);
-    }, 800);
+    }
   };
 
-  const onAccept = () => {
-    router.replace('/(app)/dashboard');
+  const onAccept = async () => {
+    if (!inviter || !user) return;
+    setAccepting(true);
+    try {
+      await acceptInvite(inviter.token, user.id);
+      router.replace('/(app)/dashboard');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Não foi possível aceitar o convite.';
+      Alert.alert('Erro', message);
+    } finally {
+      setAccepting(false);
+    }
   };
 
   return (
@@ -66,6 +89,7 @@ export default function InviteScreen() {
               label="Código de convite"
               placeholder="Ex: DUO-123456"
               autoCapitalize="characters"
+              autoCorrect={false}
               onChangeText={onChange}
               onBlur={onBlur}
               value={value}
@@ -75,7 +99,7 @@ export default function InviteScreen() {
           )}
         />
 
-        {!previewing && (
+        {!inviter && (
           <Button onPress={handleSubmit(onPreview)} loading={loading}>
             Verificar código
           </Button>
@@ -83,13 +107,13 @@ export default function InviteScreen() {
       </View>
 
       {/* Preview card */}
-      {previewing && (
+      {inviter && (
         <View className="mt-8 gap-4">
           <GlassCard className="items-center p-6">
             <View className="w-16 h-16 rounded-full bg-primary/20 items-center justify-center mb-4">
-              <Text className="text-4xl">{MOCK_INVITER.avatar}</Text>
+              <Text className="text-4xl">💕</Text>
             </View>
-            <Text className="text-text-primary text-lg font-bold">{MOCK_INVITER.name}</Text>
+            <Text className="text-text-primary text-lg font-bold">{inviter.name}</Text>
             <Text className="text-text-muted text-sm mt-1 text-center">
               quer começar uma jornada com você no DuoLove 💕
             </Text>
@@ -99,11 +123,11 @@ export default function InviteScreen() {
             </View>
           </GlassCard>
 
-          <Button onPress={onAccept}>
+          <Button onPress={onAccept} loading={accepting}>
             Aceitar convite e começar
           </Button>
 
-          <Button variant="ghost" onPress={() => setPreviewing(false)}>
+          <Button variant="ghost" onPress={() => setInviter(null)}>
             Não sou eu
           </Button>
         </View>

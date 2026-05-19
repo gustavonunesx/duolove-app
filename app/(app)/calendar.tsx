@@ -1,71 +1,67 @@
 import { useState, useMemo } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { DayCell } from '../../components/calendar/day-cell';
 import { EventCard, CalendarEvent } from '../../components/calendar/event-card';
 import { EventFormSheet } from '../../components/calendar/event-form-sheet';
 import { EventDetailSheet } from '../../components/calendar/event-detail-sheet';
+import { useEvents } from '../../hooks/use-events';
+import { useAuth } from '../../hooks/use-auth';
+import type { EventRow } from '../../lib/supabase/events';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// Mapeia EventRow do banco para CalendarEvent da UI
+function toCalendarEvent(row: EventRow, currentUserId: string): CalendarEvent {
+  const typeMap: Record<string, CalendarEvent['type']> = {
+    personal: 'pessoal',
+    couple: 'casal',
+    anniversary: 'especial',
+    travel: 'viagem',
+  };
+  const visibilityMap: Record<string, CalendarEvent['visibility']> = {
+    private: 'privado',
+    shared: 'compartilhado',
+  };
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    date: row.start_at.slice(0, 10),
+    startTime: row.start_at.slice(11, 16),
+    endTime: row.end_at.slice(11, 16),
+    type: typeMap[row.type] ?? 'casal',
+    color: row.color,
+    visibility: visibilityMap[row.visibility] ?? 'compartilhado',
+    createdBy: row.creator_id === currentUserId ? 'me' : 'partner',
+  };
+}
 
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Jantar no Fasano',
-    description: 'Reserva às 20h, vestido de gala',
-    date: '2026-05-22',
-    startTime: '20:00',
-    endTime: '22:30',
-    type: 'casal',
-    color: '#E91E8C',
-    visibility: 'compartilhado',
-    createdBy: 'me',
-  },
-  {
-    id: '2',
-    title: 'Cinema — Deadpool 3',
-    date: '2026-05-25',
-    startTime: '18:30',
-    type: 'casal',
-    color: '#9B59B6',
-    visibility: 'compartilhado',
-    createdBy: 'partner',
-    partnerInitial: 'A',
-  },
-  {
-    id: '3',
-    title: 'Viagem para Floripa',
-    description: 'Voo 07:00 — Aeroporto de Congonhas',
-    date: '2026-06-01',
-    startTime: '07:00',
-    type: 'viagem',
-    color: '#3498DB',
-    visibility: 'compartilhado',
-    createdBy: 'me',
-  },
-  {
-    id: '4',
-    title: 'Consulta médica',
-    date: '2026-05-19',
-    startTime: '14:00',
-    endTime: '15:00',
-    type: 'pessoal',
-    color: '#2ECC71',
-    visibility: 'privado',
-    createdBy: 'me',
-  },
-  {
-    id: '5',
-    title: 'Aniversário de namoro',
-    date: '2027-02-14',
-    type: 'especial',
-    color: '#E91E8C',
-    visibility: 'compartilhado',
-    createdBy: 'me',
-  },
-];
+// Mapeia CalendarEvent da UI para EventInsert do banco
+function toEventInsert(event: Omit<CalendarEvent, 'id' | 'createdBy'>) {
+  const typeMap: Record<CalendarEvent['type'], string> = {
+    pessoal: 'personal',
+    casal: 'couple',
+    especial: 'anniversary',
+    viagem: 'travel',
+  };
+  const visibilityMap: Record<CalendarEvent['visibility'], string> = {
+    privado: 'private',
+    compartilhado: 'shared',
+  };
+  const date = event.date;
+  const start = event.startTime ? `${date}T${event.startTime}:00` : `${date}T00:00:00`;
+  const end = event.endTime ? `${date}T${event.endTime}:00` : start;
+  return {
+    title: event.title,
+    description: event.description ?? null,
+    start_at: start,
+    end_at: end,
+    type: typeMap[event.type] as 'personal' | 'couple' | 'anniversary' | 'travel',
+    color: event.color,
+    visibility: visibilityMap[event.visibility] as 'private' | 'shared',
+  };
+}
 
-const SPECIAL_DATES = ['2027-02-14'];
+const SPECIAL_DATES: string[] = [];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -324,9 +320,16 @@ export default function CalendarScreen() {
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(today());
   const [filter, setFilter] = useState<FilterType>('todos');
-  const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_EVENTS);
   const [formVisible, setFormVisible] = useState(false);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+
+  const { user } = useAuth();
+  const { events: rawEvents, isLoading, addEvent, removeEvent } = useEvents();
+
+  const events: CalendarEvent[] = useMemo(
+    () => (user ? rawEvents.map((r) => toCalendarEvent(r, user.id)) : []),
+    [rawEvents, user]
+  );
 
   function navigatePrev() {
     if (view === 'month') {
@@ -374,12 +377,13 @@ export default function CalendarScreen() {
     [filteredEvents, selectedDate]
   );
 
-  function handleSaveEvent(data: Omit<CalendarEvent, 'id' | 'createdBy'>) {
-    setEvents(prev => [...prev, { ...data, id: String(Date.now()), createdBy: 'me' }]);
+  async function handleSaveEvent(data: Omit<CalendarEvent, 'id' | 'createdBy'>) {
+    await addEvent(toEventInsert(data));
   }
 
-  function handleDeleteEvent(id: string) {
-    setEvents(prev => prev.filter(e => e.id !== id));
+  async function handleDeleteEvent(id: string) {
+    await removeEvent(id);
+    setDetailEvent(null);
   }
 
   const headerTitle = view === 'month'
@@ -392,7 +396,10 @@ export default function CalendarScreen() {
     <View className="flex-1 bg-surface">
       {/* Header */}
       <View className="px-5 pt-14 pb-3 flex-row items-center justify-between">
-        <Text className="text-text-primary text-2xl font-bold">Calendário</Text>
+        <View className="flex-row items-center gap-2">
+          <Text className="text-text-primary text-2xl font-bold">Calendário</Text>
+          {isLoading && <ActivityIndicator size="small" color="#E91E8C" />}
+        </View>
         <TouchableOpacity
           onPress={() => setFormVisible(true)}
           activeOpacity={0.8}

@@ -1,32 +1,47 @@
-import { View, Text, TouchableOpacity, Share } from 'react-native';
+import { View, Text, TouchableOpacity, Share, Clipboard } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/button';
 import { GlassCard } from '../../components/ui/glass-card';
 import { useOnboardingStore } from '../../stores/onboarding-store';
 import { OnboardingHeader } from '../../components/shared/onboarding-header';
-
-const MOCK_CODE = 'DUO-482910';
+import { useCouple } from '../../hooks/use-couple';
 
 export default function OnboardingStep4() {
   const { name } = useOnboardingStore();
   const [copied, setCopied] = useState(false);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+
+  const { generateInvite, isGeneratingInvite } = useCouple();
+
+  useEffect(() => {
+    generateInvite()
+      .then((invite) => setInviteToken(invite.token))
+      .catch(() => {
+        // falhou silenciosamente — usuário pode tentar de novo via "Convidar depois"
+      });
+  }, []);
+
+  const displayCode = inviteToken ? `DUO-${inviteToken}` : '—';
+
+  const handleCopy = () => {
+    if (!inviteToken) return;
+    Clipboard.setString(displayCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleShare = async () => {
+    if (!inviteToken) return;
     try {
       await Share.share({
-        message: `${name || 'Alguém especial'} te convidou para o DuoLove! 💕\nUse o código: ${MOCK_CODE}\nOu acesse: https://duolove.app/invite/${MOCK_CODE}`,
+        message: `${name || 'Alguém especial'} te convidou para o DuoLove! 💕\nUse o código: ${displayCode}\nOu acesse: https://duolove.app/invite/${inviteToken}`,
         title: 'Convite DuoLove',
       });
     } catch {
       // share dismissed
     }
-  };
-
-  const handleCopy = () => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -46,21 +61,25 @@ export default function OnboardingStep4() {
 
         <Text className="text-text-muted text-xs mb-2 tracking-widest uppercase">Seu código de convite</Text>
 
-        <TouchableOpacity onPress={handleCopy} activeOpacity={0.7} className="flex-row items-center gap-3">
-          <Text className="text-text-primary text-3xl font-bold tracking-wider">{MOCK_CODE}</Text>
-          <Ionicons
-            name={copied ? 'checkmark-circle' : 'copy-outline'}
-            size={22}
-            color={copied ? '#4CAF50' : '#8B8B9E'}
-          />
-        </TouchableOpacity>
+        {isGeneratingInvite || !inviteToken ? (
+          <Text className="text-text-muted text-base mt-2">Gerando código...</Text>
+        ) : (
+          <TouchableOpacity onPress={handleCopy} activeOpacity={0.7} className="flex-row items-center gap-3">
+            <Text className="text-text-primary text-3xl font-bold tracking-wider">{displayCode}</Text>
+            <Ionicons
+              name={copied ? 'checkmark-circle' : 'copy-outline'}
+              size={22}
+              color={copied ? '#4CAF50' : '#8B8B9E'}
+            />
+          </TouchableOpacity>
+        )}
 
         {copied && (
           <Text className="text-green-400 text-xs mt-2">Copiado!</Text>
         )}
 
         <Text className="text-text-muted text-xs mt-4 text-center">
-          O código expira em 48 horas
+          O código expira em 7 dias
         </Text>
       </GlassCard>
 
