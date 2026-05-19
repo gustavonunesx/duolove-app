@@ -144,8 +144,8 @@ O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações
 |---|---|---|---|
 | M1 | `setup/foundation` | Scaffold Expo, design system, roteamento | ✅ Concluída |
 | M2 | `feat/auth-ui` | Telas de login, cadastro, onboarding (mock) | ✅ Concluída |
-| M3 | `feat/dashboard-ui` | Dashboard, counter, shell do app | ⬜ Próxima |
-| M4 | `feat/calendar-ui` | Calendário completo (mock data) | ⬜ |
+| M3 | `feat/dashboard-ui` | Dashboard, counter, shell do app | ✅ Concluída |
+| M4 | `feat/calendar-ui` | Calendário completo (mock data) | ⬜ Próxima |
 | M5 | `feat/chat-ui` | Chat e reações (mock) | ⬜ |
 | M6 | `feat/memories-ui` | Timeline de memórias e upload UI | ⬜ |
 | M7 | `feat/backend-foundation` | Supabase, Prisma schema, auth real | ⬜ |
