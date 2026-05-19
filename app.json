@@ -33,7 +33,8 @@
           "color": "#E91E8C",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "@stripe/stripe-react-native"
     ],
     "scheme": "duolove",
     "experiments": {

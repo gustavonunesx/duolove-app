@@ -1,8 +1,14 @@
-import { ActivityIndicator, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 import { useAuth } from '../../hooks/use-auth';
 import { usePushNotifications } from '../../hooks/use-push-notifications';
+import { useSubscription } from '../../hooks/use-subscription';
+import { useCouple } from '../../hooks/use-couple';
+import { supabase } from '../../lib/supabase/client';
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -50,9 +56,134 @@ function Divider() {
   return <View className="h-px bg-white/5 mx-1" />;
 }
 
+// ─── Upgrade modal ────────────────────────────────────────────────────────────
+
+function UpgradeModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const [interval, setInterval] = useState<'month' | 'year'>('month');
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+
+  async function handleCheckout() {
+    setIsLoading(true);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ interval }),
+      });
+
+      const { url } = await res.json();
+      if (url) {
+        onClose();
+        await Linking.openURL(url);
+      }
+    } catch {
+      Alert.alert('Erro', 'Não foi possível abrir o checkout. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const monthlyPrice = 'R$ 19,90/mês';
+  const yearlyPrice = 'R$ 159,90/ano';
+  const yearlySaving = 'Economize R$ 79/ano';
+
+  return (
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View className="flex-1 bg-black/70 justify-end">
+        <Pressable className="flex-1" onPress={onClose} />
+        <View className="bg-card rounded-t-3xl border-t border-white/10 px-5 pb-10 pt-4">
+          <View className="items-center mb-4">
+            <View className="w-10 h-1 bg-white/20 rounded-full" />
+          </View>
+
+          <View className="items-center mb-6">
+            <View className="w-14 h-14 rounded-full bg-primary/20 border border-primary items-center justify-center mb-3">
+              <Feather name="star" size={26} color="#E91E8C" />
+            </View>
+            <Text className="text-text-primary text-xl font-bold">DuoLove Premium</Text>
+            <Text className="text-text-muted text-sm text-center mt-1">
+              Tudo que o amor precisa, sem limites
+            </Text>
+          </View>
+
+          {/* Features */}
+          <View className="gap-2.5 mb-6">
+            {[
+              { icon: 'droplet' as const, text: 'Temas exclusivos do casal' },
+              { icon: 'image' as const, text: 'Storage ilimitado de memórias' },
+              { icon: 'bar-chart-2' as const, text: 'Retrospectiva mensal' },
+              { icon: 'lock' as const, text: 'Cápsulas do tempo ilimitadas' },
+            ].map((f) => (
+              <View key={f.text} className="flex-row items-center gap-3">
+                <View className="w-7 h-7 rounded-full bg-primary/20 items-center justify-center">
+                  <Feather name={f.icon} size={14} color="#E91E8C" />
+                </View>
+                <Text className="text-text-primary text-sm">{f.text}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Plan toggle */}
+          <View className="flex-row gap-3 mb-5">
+            {(['month', 'year'] as const).map((p) => (
+              <TouchableOpacity
+                key={p}
+                onPress={() => setInterval(p)}
+                activeOpacity={0.8}
+                className={`flex-1 rounded-2xl border p-3 items-center gap-0.5 ${
+                  interval === p ? 'bg-primary/20 border-primary' : 'bg-surface border-white/10'
+                }`}
+              >
+                <Text className={`font-bold text-sm ${interval === p ? 'text-primary' : 'text-text-muted'}`}>
+                  {p === 'month' ? monthlyPrice : yearlyPrice}
+                </Text>
+                {p === 'year' && (
+                  <Text className="text-green-400 text-xs font-medium">{yearlySaving}</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            onPress={handleCheckout}
+            activeOpacity={0.85}
+            disabled={isLoading}
+            className={`bg-primary rounded-2xl py-4 items-center ${isLoading ? 'opacity-60' : ''}`}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text className="text-white font-bold text-base">Continuar para o pagamento</Text>
+            )}
+          </TouchableOpacity>
+
+          <Text className="text-text-muted text-xs text-center mt-3">
+            Cancele a qualquer momento. Renovação automática.
+          </Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
 export default function SettingsScreen() {
   const { signOut, user } = useAuth();
   const { preferences, isUpdating, updatePreferences } = usePushNotifications();
+  const { isPremium, subscription } = useSubscription();
+  const { couple } = useCouple();
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
   const displayName = user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? 'Usuário';
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -60,6 +191,34 @@ export default function SettingsScreen() {
     if (!preferences) return;
     await updatePreferences({ [key]: !preferences[key] });
   }
+
+  async function handleOpenPortal() {
+    setIsOpeningPortal(true);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/stripe-portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { url } = await res.json();
+      if (url) await Linking.openURL(url);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível abrir o portal. Tente novamente.');
+    } finally {
+      setIsOpeningPortal(false);
+    }
+  }
+
+  const renewalDate = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null;
 
   return (
     <View className="flex-1 bg-surface">
@@ -91,22 +250,59 @@ export default function SettingsScreen() {
           <View className="flex-row items-center gap-3 py-2">
             <View className="flex-row">
               <View className="w-8 h-8 rounded-full bg-primary/20 border-2 border-primary items-center justify-center z-10">
-                <Text className="text-primary text-xs font-bold">G</Text>
+                <Text className="text-primary text-xs font-bold">{initial}</Text>
               </View>
-              <View className="w-8 h-8 rounded-full bg-secondary/20 border-2 border-secondary items-center justify-center -ml-2">
-                <Text className="text-secondary text-xs font-bold">A</Text>
-              </View>
+              {couple?.user2_id && (
+                <View className="w-8 h-8 rounded-full bg-secondary/20 border-2 border-secondary items-center justify-center -ml-2">
+                  <Text className="text-secondary text-xs font-bold">P</Text>
+                </View>
+              )}
             </View>
             <View className="flex-1">
-              <Text className="text-text-primary text-sm font-medium">Gustavo & Ana</Text>
-              <Text className="text-text-muted text-xs">Juntos desde 14 fev 2023</Text>
+              <Text className="text-text-primary text-sm font-medium">
+                {couple?.user2_id ? 'Vocês dois' : 'Aguardando parceiro(a)'}
+              </Text>
+              {couple?.start_date && (
+                <Text className="text-text-muted text-xs">
+                  Juntos desde {new Date(couple.start_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </Text>
+              )}
             </View>
-            <View className="bg-green-500/20 px-2 py-1 rounded-full">
-              <Text className="text-green-400 text-xs font-medium">Free</Text>
+            <View className={`px-2 py-1 rounded-full ${isPremium ? 'bg-primary/20' : 'bg-green-500/20'}`}>
+              <Text className={`text-xs font-medium ${isPremium ? 'text-primary' : 'text-green-400'}`}>
+                {isPremium ? 'Premium' : 'Free'}
+              </Text>
             </View>
           </View>
-          <Divider />
-          <SettingsRow icon="star" label="Upgrade para Premium" sublabel="Desbloqueie temas e recursos exclusivos" />
+
+          {!isPremium && (
+            <>
+              <Divider />
+              <SettingsRow
+                icon="star"
+                label="Upgrade para Premium"
+                sublabel="Desbloqueie temas e recursos exclusivos"
+                onPress={() => setUpgradeModalVisible(true)}
+              />
+            </>
+          )}
+
+          {isPremium && (
+            <>
+              <Divider />
+              <SettingsRow
+                icon="credit-card"
+                label="Gerenciar assinatura"
+                sublabel={renewalDate ? `Renova em ${renewalDate}` : 'Premium ativo'}
+                onPress={handleOpenPortal}
+                rightElement={
+                  isOpeningPortal
+                    ? <ActivityIndicator size="small" color="#E91E8C" />
+                    : undefined
+                }
+              />
+            </>
+          )}
         </GlassCard>
 
         <SectionLabel label="Aparência" />
@@ -204,6 +400,11 @@ export default function SettingsScreen() {
 
         <Text className="text-text-muted text-xs text-center mt-6">DuoLove v1.0.0</Text>
       </ScrollView>
+
+      <UpgradeModal
+        visible={upgradeModalVisible}
+        onClose={() => setUpgradeModalVisible(false)}
+      />
     </View>
   );
 }
