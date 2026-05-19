@@ -1,6 +1,5 @@
-import { View, Text } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { View, Text, Animated } from 'react-native';
+import { useEffect, useRef } from 'react';
 
 interface OnboardingHeaderProps {
   step: number;
@@ -10,29 +9,30 @@ interface OnboardingHeaderProps {
 }
 
 export function OnboardingHeader({ step, total, title, subtitle }: OnboardingHeaderProps) {
-  const progress = useSharedValue(0);
+  const progress = useRef(new Animated.Value(step / total)).current;
 
   useEffect(() => {
-    progress.value = withTiming(step / total, { duration: 500 });
+    Animated.timing(progress, {
+      toValue: step / total,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
   }, [step, total]);
 
-  const barStyle = useAnimatedStyle(() => ({
-    width: `${progress.value * 100}%`,
-  }));
+  const widthInterpolated = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
     <View className="mb-8">
-      {/* Progress bar */}
       <View className="flex-row items-center gap-3 mb-6">
         <View className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <Animated.View
-            style={barStyle}
-            className="h-full bg-primary rounded-full"
+            style={{ width: widthInterpolated, height: '100%', backgroundColor: '#E91E8C', borderRadius: 999 }}
           />
         </View>
-        <Text className="text-text-muted text-xs">
-          {step}/{total}
-        </Text>
+        <Text className="text-text-muted text-xs">{step}/{total}</Text>
       </View>
 
       <Text className="text-text-primary text-2xl font-bold">{title}</Text>
