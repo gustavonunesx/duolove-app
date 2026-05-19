@@ -304,19 +304,15 @@ feat(backend): add events API with realtime sync and couple invite flow
 
 ### Entregas
 
-- [ ] `POST /api/messages` — enviar mensagem
-- [ ] `GET /api/messages` — listar mensagens (paginado, por casal ou por evento)
-- [ ] `POST /api/messages/[id]/reactions` — adicionar reação
-- [ ] `DELETE /api/messages/[id]/reactions/[emoji]` — remover reação
-- [ ] Supabase Realtime: canal `couple:{id}:messages` para chat ao vivo
-- [ ] Substituir mock do chat por dados reais
-- [ ] Configurar Supabase Storage bucket `memories` (com RLS por casal)
-- [ ] `POST /api/memories` — criar memória com upload de foto via `expo-image-picker`
-- [ ] `GET /api/memories` — listar memórias (com filtros)
-- [ ] `DELETE /api/memories/[id]` — deletar memória e arquivo do Storage
-- [ ] `POST /api/capsules` — criar cápsula do tempo
-- [ ] `GET /api/capsules` — listar cápsulas (reveladas e lacradas)
-- [ ] Substituir mocks de memórias e chat pelas chamadas reais
+- [x] `lib/supabase/messages.ts` — getMessages, sendMessage, getReactions, addReaction, removeReaction
+- [x] `hooks/use-messages.ts` — React Query + Supabase Realtime no canal `couple:{id}:messages`
+- [x] Substituir mock do chat por dados reais (`chat.tsx`)
+- [x] Configurar Supabase Storage bucket `memories` (com RLS por casal) — SQL em `supabase/schema.sql`
+- [x] `lib/supabase/memories.ts` — getMemories, createMemory, deleteMemory, uploadMemoryPhoto
+- [x] `hooks/use-memories.ts` — React Query
+- [x] `lib/supabase/capsules.ts` — getCapsules, createCapsule, revealCapsule
+- [x] `hooks/use-capsules.ts` — React Query
+- [x] Substituir mocks de memórias e cápsulas pelas chamadas reais (`memories.tsx`)
 
 **Commit final:**
 ```
