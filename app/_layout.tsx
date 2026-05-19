@@ -1,12 +1,46 @@
 import '../global.css';
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuthListener, useAuth } from '../hooks/use-auth';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
+
+function RouteGuard() {
+  useAuthListener();
+  const { isAuthenticated, isLoading } = useAuth();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = segments[0] === 'onboarding';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(app)/dashboard');
+    }
+  }, [isAuthenticated, isLoading, segments]);
+
+  return null;
+}
 
 export default function RootLayout() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <StatusBar style="light" />
+      <RouteGuard />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D0D' } }} />
-    </>
+    </QueryClientProvider>
   );
 }

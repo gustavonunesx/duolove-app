@@ -1,7 +1,7 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { GlassCard } from '../../components/ui/glass-card';
+import { useAuth } from '../../hooks/use-auth';
 
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -50,6 +50,10 @@ function Divider() {
 }
 
 export default function SettingsScreen() {
+  const { signOut, user } = useAuth();
+  const displayName = user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? 'Usuário';
+  const initial = displayName.charAt(0).toUpperCase();
+
   return (
     <View className="flex-1 bg-surface">
       <View className="px-5 pt-14 pb-4">
@@ -64,11 +68,11 @@ export default function SettingsScreen() {
         {/* Profile card */}
         <GlassCard className="flex-row items-center gap-4 mb-2">
           <View className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary items-center justify-center">
-            <Text className="text-primary text-2xl font-bold">G</Text>
+            <Text className="text-primary text-2xl font-bold">{initial}</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-text-primary font-bold text-lg">Gustavo</Text>
-            <Text className="text-text-muted text-sm">gustavo@email.com</Text>
+            <Text className="text-text-primary font-bold text-lg">{displayName}</Text>
+            <Text className="text-text-muted text-sm">{user?.email ?? ''}</Text>
           </View>
           <TouchableOpacity activeOpacity={0.7} className="bg-primary/10 px-3 py-1.5 rounded-full">
             <Text className="text-primary text-xs font-semibold">Editar</Text>
@@ -124,7 +128,7 @@ export default function SettingsScreen() {
             icon="log-out"
             label="Sair"
             danger
-            onPress={() => router.replace('/(auth)/login')}
+            onPress={signOut}
             rightElement={<View />}
           />
         </GlassCard>
