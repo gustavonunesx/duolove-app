@@ -11,81 +11,45 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Memory, MemoryCard, MemoryGridCard, MemoryTag } from '../../components/memories/memory-card';
 import { MemoryLightbox } from '../../components/memories/memory-lightbox';
 import { Capsule, CapsuleCard } from '../../components/memories/capsule-card';
+import { useMemories } from '../../hooks/use-memories';
+import { useCapsules } from '../../hooks/use-capsules';
+import { useAuth } from '../../hooks/use-auth';
+import { MemoryRow } from '../../lib/supabase/memories';
+import { CapsuleRow } from '../../lib/supabase/capsules';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const INITIAL_MEMORIES: Memory[] = [
-  {
-    id: '1',
-    title: 'Fim de semana em Campos do Jordão',
-    description: 'Aquela viagem incrível que fizemos juntos. Frio, chocolate quente e muito amor.',
-    date: '12 mai 2025',
-    photoPlaceholder: '📸 Montanhas e neve',
-    tags: ['viagem'],
-    createdBy: 'me',
-  },
-  {
-    id: '2',
-    title: 'Primeiro aniversário de namoro',
-    description: 'Um ano juntos e cada dia melhor. Jantar surpresa e flores.',
-    date: '14 fev 2025',
-    photoPlaceholder: '📸 Jantar romântico',
-    tags: ['aniversário', 'date'],
-    createdBy: 'partner',
-    partnerInitial: 'A',
-  },
-  {
-    id: '3',
-    title: 'Nosso primeiro Natal juntos',
-    description: 'A família toda reunida, presentes e muito carinho.',
-    date: '25 dez 2024',
-    photoPlaceholder: '📸 Árvore de Natal',
-    tags: ['milestone', 'dia a dia'],
-    createdBy: 'me',
-  },
-  {
-    id: '4',
-    title: 'Praia de Florianópolis',
-    description: 'Sol, mar e nós dois. O melhor verão da vida.',
-    date: '15 jan 2025',
-    photoPlaceholder: '📸 Pôr do sol na praia',
-    tags: ['viagem', 'date'],
-    createdBy: 'partner',
-    partnerInitial: 'A',
-  },
-  {
-    id: '5',
-    title: 'Domingo de pijama em casa',
-    description: 'Filme, pipoca e a melhor companhia do mundo.',
-    date: '02 mar 2025',
-    photoPlaceholder: '📸 Sofá e cobertor',
-    tags: ['dia a dia'],
-    createdBy: 'me',
-  },
-];
+const VALID_TAGS: MemoryTag[] = ['viagem', 'date', 'aniversário', 'milestone', 'dia a dia'];
+const TAG_OPTIONS: MemoryTag[] = VALID_TAGS;
 
-const INITIAL_CAPSULES: Capsule[] = [
-  {
-    id: 'c1',
-    message: 'Amor, quando você ler isso já faz 2 anos que estamos juntos. Obrigada por cada momento. Te amo infinito. ❤️',
-    revealAt: '2025-02-14',
-    revealedAt: '2025-02-14',
-    createdBy: 'partner',
-    partnerInitial: 'A',
-  },
-  {
-    id: 'c2',
-    revealAt: '2026-02-14',
-    createdBy: 'me',
-  },
-];
+function toMemory(row: MemoryRow, currentUserId: string): Memory {
+  const tags = row.tags.filter((t): t is MemoryTag => VALID_TAGS.includes(t as MemoryTag));
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    date: new Date(row.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
+    photoPlaceholder: row.photo_url ? '📸 Foto' : '📸 Memória',
+    tags: tags.length ? tags : ['dia a dia'],
+    createdBy: row.creator_id === currentUserId ? 'me' : 'partner',
+  };
+}
 
-const TAG_OPTIONS: MemoryTag[] = ['viagem', 'date', 'aniversário', 'milestone', 'dia a dia'];
+function toCapsule(row: CapsuleRow, currentUserId: string): Capsule {
+  return {
+    id: row.id,
+    message: row.message,
+    revealAt: row.reveal_at,
+    revealedAt: row.revealed_at ?? undefined,
+    createdBy: row.creator_id === currentUserId ? 'me' : 'partner',
+  };
+}
 
 // ─── Memory Form Sheet ────────────────────────────────────────────────────────
 
@@ -93,10 +57,12 @@ function MemoryFormSheet({
   visible,
   onClose,
   onSave,
+  isSaving,
 }: {
   visible: boolean;
   onClose: () => void;
-  onSave: (m: Omit<Memory, 'id' | 'createdBy'>) => void;
+  onSave: (data: { title: string; description?: string; date: string; tags: MemoryTag[] }) => Promise<void>;
+  isSaving: boolean;
 }) {
   const slideAnim = useRef(new Animated.Value(700)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -126,13 +92,12 @@ function MemoryFormSheet({
     );
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!title.trim()) return;
-    onSave({
+    await onSave({
       title: title.trim(),
       description: description.trim() || undefined,
-      date: date.trim() || new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
-      photoPlaceholder: '📸 Nova memória',
+      date: date.trim() || new Date().toISOString().slice(0, 10),
       tags: selectedTags.length ? selectedTags : ['dia a dia'],
     });
     onClose();
@@ -158,7 +123,6 @@ function MemoryFormSheet({
             </TouchableOpacity>
           </View>
           <ScrollView className="px-5" contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
-            {/* Photo picker placeholder */}
             <TouchableOpacity
               activeOpacity={0.7}
               className="h-32 bg-surface border-2 border-dashed border-white/20 rounded-2xl items-center justify-center gap-2 mb-4"
@@ -187,7 +151,7 @@ function MemoryFormSheet({
             <TextInput
               value={date}
               onChangeText={setDate}
-              placeholder="Data (ex: 15 mai 2025)"
+              placeholder="Data (AAAA-MM-DD)"
               placeholderTextColor="#8B8B9E"
               className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-4"
             />
@@ -214,10 +178,14 @@ function MemoryFormSheet({
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.8}
-              className={`bg-primary rounded-2xl py-4 items-center ${!title.trim() ? 'opacity-40' : ''}`}
-              disabled={!title.trim()}
+              disabled={!title.trim() || isSaving}
+              className={`bg-primary rounded-2xl py-4 items-center ${(!title.trim() || isSaving) ? 'opacity-40' : ''}`}
             >
-              <Text className="text-white font-semibold text-base">Salvar memória</Text>
+              {isSaving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text className="text-white font-semibold text-base">Salvar memória</Text>
+              )}
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
@@ -232,10 +200,12 @@ function CapsuleFormSheet({
   visible,
   onClose,
   onSave,
+  isSaving,
 }: {
   visible: boolean;
   onClose: () => void;
-  onSave: (c: Omit<Capsule, 'id' | 'createdBy'>) => void;
+  onSave: (data: { message: string; revealAt: string }) => Promise<void>;
+  isSaving: boolean;
 }) {
   const slideAnim = useRef(new Animated.Value(500)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -257,9 +227,9 @@ function CapsuleFormSheet({
     }
   }, [visible]);
 
-  function handleSave() {
-    if (!revealDate.trim()) return;
-    onSave({ message: message.trim() || undefined, revealAt: revealDate.trim() });
+  async function handleSave() {
+    if (!revealDate.trim() || !message.trim()) return;
+    await onSave({ message: message.trim(), revealAt: revealDate.trim() });
     onClose();
   }
 
@@ -306,10 +276,14 @@ function CapsuleFormSheet({
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.8}
-              className={`bg-secondary rounded-2xl py-4 items-center ${!revealDate.trim() ? 'opacity-40' : ''}`}
-              disabled={!revealDate.trim()}
+              disabled={!revealDate.trim() || !message.trim() || isSaving}
+              className={`bg-secondary rounded-2xl py-4 items-center ${(!revealDate.trim() || !message.trim() || isSaving) ? 'opacity-40' : ''}`}
             >
-              <Text className="text-white font-semibold text-base">Lacrar cápsula</Text>
+              {isSaving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text className="text-white font-semibold text-base">Lacrar cápsula</Text>
+              )}
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
@@ -324,30 +298,33 @@ type MemoryView = 'timeline' | 'grid';
 type FilterTag = 'todos' | MemoryTag;
 
 export default function MemoriesScreen() {
+  const { user } = useAuth();
+  const { memories: rawMemories, isLoading: memoriesLoading, addMemory, isAdding: isAddingMemory } = useMemories();
+  const { capsules: rawCapsules, isLoading: capsulesLoading, addCapsule, isAdding: isAddingCapsule, revealCapsule } = useCapsules();
+
   const [viewMode, setViewMode] = useState<MemoryView>('timeline');
   const [filterTag, setFilterTag] = useState<FilterTag>('todos');
-  const [memories, setMemories] = useState<Memory[]>(INITIAL_MEMORIES);
-  const [capsules, setCapsules] = useState<Capsule[]>(INITIAL_CAPSULES);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [memoryFormVisible, setMemoryFormVisible] = useState(false);
   const [capsuleFormVisible, setCapsuleFormVisible] = useState(false);
+
+  const memories: Memory[] = rawMemories.map((row) => toMemory(row, user!.id));
+  const capsules: Capsule[] = rawCapsules.map((row) => toCapsule(row, user!.id));
 
   const filtered = filterTag === 'todos'
     ? memories
     : memories.filter((m) => m.tags.includes(filterTag as MemoryTag));
 
-  function handleSaveMemory(data: Omit<Memory, 'id' | 'createdBy'>) {
-    setMemories((prev) => [{ ...data, id: String(Date.now()), createdBy: 'me' }, ...prev]);
+  async function handleSaveMemory(data: { title: string; description?: string; date: string; tags: MemoryTag[] }) {
+    await addMemory({ title: data.title, description: data.description, date: data.date, tags: data.tags });
   }
 
-  function handleSaveCapsule(data: Omit<Capsule, 'id' | 'createdBy'>) {
-    setCapsules((prev) => [...prev, { ...data, id: String(Date.now()), createdBy: 'me' }]);
+  async function handleSaveCapsule(data: { message: string; revealAt: string }) {
+    await addCapsule({ message: data.message, reveal_at: data.revealAt });
   }
 
-  function handleRevealCapsule(id: string) {
-    setCapsules((prev) =>
-      prev.map((c) => c.id === id ? { ...c, revealedAt: new Date().toISOString().slice(0, 10) } : c)
-    );
+  async function handleRevealCapsule(id: string) {
+    await revealCapsule(id);
   }
 
   return (
@@ -412,8 +389,11 @@ export default function MemoriesScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Memory list / grid */}
-        {filtered.length === 0 ? (
+        {memoriesLoading ? (
+          <View className="items-center py-16">
+            <ActivityIndicator color="#E91E8C" size="large" />
+          </View>
+        ) : filtered.length === 0 ? (
           <View className="bg-card border border-white/10 rounded-2xl p-8 items-center gap-3 mb-6">
             <Feather name="image" size={40} color="#8B8B9E" />
             <Text className="text-text-muted text-sm text-center">
@@ -431,7 +411,6 @@ export default function MemoriesScreen() {
           <View className="gap-4 mb-6">
             {filtered.map((memory, i) => (
               <View key={memory.id} className="flex-row gap-3">
-                {/* Timeline line */}
                 <View className="items-center" style={{ width: 20 }}>
                   <View className="w-3 h-3 rounded-full bg-primary mt-4" />
                   {i < filtered.length - 1 && (
@@ -475,11 +454,23 @@ export default function MemoriesScreen() {
           </TouchableOpacity>
         </View>
 
-        <View className="gap-3">
-          {capsules.map((capsule) => (
-            <CapsuleCard key={capsule.id} capsule={capsule} onReveal={handleRevealCapsule} />
-          ))}
-        </View>
+        {capsulesLoading ? (
+          <ActivityIndicator color="#9B59B6" size="small" />
+        ) : (
+          <View className="gap-3">
+            {capsules.map((capsule) => (
+              <CapsuleCard key={capsule.id} capsule={capsule} onReveal={handleRevealCapsule} />
+            ))}
+            {capsules.length === 0 && (
+              <View className="bg-card border border-secondary/20 rounded-2xl p-6 items-center gap-2">
+                <Feather name="lock" size={28} color="#9B59B6" />
+                <Text className="text-text-muted text-sm text-center">
+                  Nenhuma cápsula ainda. Guarde uma mensagem para o futuro! 💌
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
 
       {/* Modals */}
@@ -492,11 +483,13 @@ export default function MemoriesScreen() {
         visible={memoryFormVisible}
         onClose={() => setMemoryFormVisible(false)}
         onSave={handleSaveMemory}
+        isSaving={isAddingMemory}
       />
       <CapsuleFormSheet
         visible={capsuleFormVisible}
         onClose={() => setCapsuleFormVisible(false)}
         onSave={handleSaveCapsule}
+        isSaving={isAddingCapsule}
       />
     </View>
   );

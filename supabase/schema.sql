@@ -271,3 +271,36 @@ create index if not exists idx_messages_created_at on public.messages(created_at
 create index if not exists idx_memories_couple_id on public.memories(couple_id);
 create index if not exists idx_memories_date on public.memories(date);
 create index if not exists idx_couple_invites_token on public.couple_invites(token);
+create index if not exists idx_capsules_couple_id on public.capsules(couple_id);
+create index if not exists idx_message_reactions_message_id on public.message_reactions(message_id);
+
+-- =============================================
+-- STORAGE — bucket 'memories'
+-- =============================================
+-- Execute no Supabase Dashboard > Storage > New Bucket:
+-- Nome: memories, Public: true
+
+-- Políticas RLS do bucket (executar no SQL Editor):
+insert into storage.buckets (id, name, public)
+values ('memories', 'memories', true)
+on conflict (id) do nothing;
+
+create policy "memories storage: select"
+  on storage.objects for select
+  using (bucket_id = 'memories' and auth.uid() is not null);
+
+create policy "memories storage: insert"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'memories'
+    and auth.uid() is not null
+    and (storage.foldername(name))[1] = (get_user_couple_id())::text
+  );
+
+create policy "memories storage: delete"
+  on storage.objects for delete
+  using (
+    bucket_id = 'memories'
+    and auth.uid() is not null
+    and (storage.foldername(name))[1] = (get_user_couple_id())::text
+  );
