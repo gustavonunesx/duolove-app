@@ -6,6 +6,9 @@ App móvel de calendário compartilhado para casais. Combina agendamento, comuni
 
 Site de marketing (separado): repositório `duolove-web` (Next.js).
 
+PRD completo: [docs/PRD.md](docs/PRD.md)
+Plano de milestones: [docs/PLAN.md](docs/PLAN.md)
+
 ---
 
 ## Tech Stack
