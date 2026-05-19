@@ -173,6 +173,8 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 
 ## Milestone Git Flow
 
+**⚠️ Regra importante:** Nunca iniciar uma nova milestone (criar branch, instalar dependências, escrever código) sem pedido explícito do usuário. Ao concluir o merge de uma milestone, parar e aguardar instrução.
+
 **Início de cada milestone:**
 1. Criar branch: `git checkout -b feat/nome-da-milestone`
 
@@ -185,3 +187,4 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 6. Merge: `gh pr merge --merge --delete-branch`
 7. Deletar branch local: `git branch -d <branch>`
 8. Voltar para master: `git checkout master && git pull`
+9. **Parar. Não iniciar a próxima milestone.**
