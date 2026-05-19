@@ -166,29 +166,29 @@ feat(calendar): add full calendar UI with mock events and all views
 
 ---
 
-## M5 — Chat UI
+## M5 — Chat UI ✅ CONCLUÍDA
 
 **Branch:** `feat/chat-ui`
 **Objetivo:** Interface de chat com UI completa e dados mock.
 
 ### Entregas
 
-- [ ] Página de chat (`app/(app)/chat.tsx`)
-- [ ] Lista de conversas: chat geral do casal + por evento
-- [ ] Janela de mensagens com bolhas estilizadas:
-  - [ ] Diferenciação visual: próprias (direita, rosa) vs. parceiro(a) (esquerda, card)
-  - [ ] Timestamps nas mensagens
-  - [ ] Indicador de leitura (lido/entregue com ícone)
-- [ ] Input de mensagem com botão de envio e emoji picker
-- [ ] Reações com emojis (long press abre picker de reação)
-- [ ] Indicador "digitando..." (mock com animação de bolinha)
-- [ ] Scroll automático para mensagem mais recente
-- [ ] Aba de comentários dentro de evento (integrada ao bottom sheet do calendário)
-- [ ] Estado vazio: "Mandem a primeira mensagem juntos 💌"
-- [ ] Componentes:
-  - [ ] `components/chat/message-bubble.tsx`
-  - [ ] `components/chat/reaction-picker.tsx`
-  - [ ] `components/chat/message-input.tsx`
+- [x] Página de chat (`app/(app)/chat.tsx`)
+- [x] Lista de conversas: chat geral do casal + por evento
+- [x] Janela de mensagens com bolhas estilizadas:
+  - [x] Diferenciação visual: próprias (direita, rosa) vs. parceiro(a) (esquerda, card)
+  - [x] Timestamps nas mensagens
+  - [x] Indicador de leitura (lido/entregue com ícone)
+- [x] Input de mensagem com botão de envio e emoji picker
+- [x] Reações com emojis (long press abre picker de reação)
+- [x] Indicador "digitando..." (mock com animação de bolinha)
+- [x] Scroll automático para mensagem mais recente
+- [x] Aba de comentários dentro de evento (integrada ao bottom sheet do calendário)
+- [x] Estado vazio: "Mandem a primeira mensagem juntos 💌"
+- [x] Componentes:
+  - [x] `components/chat/message-bubble.tsx`
+  - [x] `components/chat/reaction-picker.tsx`
+  - [x] `components/chat/message-input.tsx`
 
 **Commit final:**
 ```
