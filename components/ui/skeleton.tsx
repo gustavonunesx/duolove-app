@@ -1,5 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Animated, View, ViewProps } from 'react-native';
+import { useEffect } from 'react';
+import { View, ViewProps } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 interface SkeletonProps extends ViewProps {
   width?: number | string;
@@ -16,23 +23,30 @@ const roundedMap = {
 };
 
 export function Skeleton({ width, height = 16, rounded = 'md', className, style, ...props }: SkeletonProps) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const opacity = useSharedValue(0.3);
 
   useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
-      ])
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.7, { duration: 800 }),
+        withTiming(0.3, { duration: 800 })
+      ),
+      -1
     );
-    pulse.start();
-    return () => pulse.stop();
-  }, [opacity]);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const fixedWidth = typeof width === 'number' ? width : undefined;
 
   return (
-    <View style={fixedWidth === undefined ? { width: '100%' } : { width: fixedWidth }}>
+    <View
+      style={fixedWidth === undefined ? { width: '100%' } : { width: fixedWidth }}
+      accessibilityLabel="Carregando"
+      accessibilityRole="none"
+    >
       <Animated.View
         {...props}
         style={[
@@ -40,9 +54,9 @@ export function Skeleton({ width, height = 16, rounded = 'md', className, style,
             backgroundColor: '#2A2A4E',
             height,
             borderRadius: roundedMap[rounded],
-            opacity,
           },
           fixedWidth !== undefined && { width: fixedWidth },
+          animatedStyle,
           style,
         ]}
       />

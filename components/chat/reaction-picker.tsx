@@ -1,5 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 const EMOJI_OPTIONS = ['❤️', '😂', '😍', '😮', '😢', '👏'];
 
@@ -10,36 +17,56 @@ interface ReactionPickerProps {
 }
 
 export function ReactionPicker({ visible, onSelect, onClose }: ReactionPickerProps) {
-  const scaleAnim = useRef(new Animated.Value(0.7)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const scale = useSharedValue(0.7);
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 8 }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-      ]).start();
+      scale.value = withSpring(1, { damping: 14, stiffness: 200 });
+      opacity.value = withTiming(1, { duration: 150 });
     } else {
-      Animated.parallel([
-        Animated.timing(scaleAnim, { toValue: 0.7, duration: 150, useNativeDriver: true }),
-        Animated.timing(opacityAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-      ]).start();
+      scale.value = withTiming(0.7, { duration: 150 });
+      opacity.value = withTiming(0, { duration: 150 });
     }
   }, [visible]);
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  async function handleSelect(emoji: string) {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onSelect(emoji);
+    onClose();
+  }
+
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-      <Pressable className="flex-1 justify-end pb-32 items-center" onPress={onClose}>
+    <Modal
+      transparent
+      visible={visible}
+      animationType="none"
+      onRequestClose={onClose}
+      accessibilityViewIsModal
+    >
+      <Pressable
+        className="flex-1 justify-end pb-32 items-center"
+        onPress={onClose}
+        accessibilityLabel="Fechar seletor de reações"
+        accessibilityRole="button"
+      >
         <Animated.View
-          style={{ opacity: opacityAnim, transform: [{ scale: scaleAnim }] }}
+          style={animatedStyle}
           className="bg-card border border-white/10 rounded-2xl px-4 py-3 flex-row gap-3"
         >
           {EMOJI_OPTIONS.map((emoji) => (
             <TouchableOpacity
               key={emoji}
-              onPress={() => { onSelect(emoji); onClose(); }}
+              onPress={() => handleSelect(emoji)}
               activeOpacity={0.7}
               className="w-11 h-11 items-center justify-center rounded-xl active:bg-white/10"
+              accessibilityLabel={`Reagir com ${emoji}`}
+              accessibilityRole="button"
             >
               <Text className="text-2xl">{emoji}</Text>
             </TouchableOpacity>

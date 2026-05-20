@@ -1,4 +1,10 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 
 export type MemoryTag = 'viagem' | 'date' | 'aniversário' | 'milestone' | 'dia a dia';
@@ -30,6 +36,8 @@ const TAG_ICONS: Record<MemoryTag, React.ComponentProps<typeof Feather>['name']>
   'dia a dia': 'sun',
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 interface MemoryCardProps {
   memory: Memory;
   onPress: () => void;
@@ -39,23 +47,40 @@ export function MemoryCard({ memory, onPress }: MemoryCardProps) {
   const primaryTag = memory.tags[0];
   const tagColor = primaryTag ? TAG_COLORS[primaryTag] : '#E91E8C';
   const tagIcon = primaryTag ? TAG_ICONS[primaryTag] : 'image';
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      activeOpacity={0.8}
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 15, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 300 }); }}
+      style={animatedStyle}
       className="bg-card border border-white/10 rounded-2xl overflow-hidden"
+      accessibilityLabel={`Memória: ${memory.title}, ${memory.date}`}
+      accessibilityRole="button"
+      accessibilityHint="Toque para ampliar"
     >
-      {/* Photo placeholder */}
-      <View
-        className="h-40 items-center justify-center"
-        style={{ backgroundColor: tagColor + '15' }}
-      >
-        <Feather name={tagIcon} size={40} color={tagColor} />
-        <Text className="text-text-muted text-xs mt-2">{memory.photoPlaceholder}</Text>
-      </View>
+      {memory.photoPlaceholder.startsWith('http') ? (
+        <Image
+          source={{ uri: memory.photoPlaceholder }}
+          style={{ height: 160, width: '100%' }}
+          contentFit="cover"
+          transition={200}
+        />
+      ) : (
+        <View
+          className="h-40 items-center justify-center"
+          style={{ backgroundColor: tagColor + '15' }}
+        >
+          <Feather name={tagIcon} size={40} color={tagColor} />
+          <Text className="text-text-muted text-xs mt-2">{memory.photoPlaceholder}</Text>
+        </View>
+      )}
 
-      {/* Info */}
       <View className="p-3 gap-2">
         <View className="flex-row items-start justify-between gap-2">
           <Text className="text-text-primary font-semibold text-sm flex-1" numberOfLines={2}>
@@ -85,22 +110,32 @@ export function MemoryCard({ memory, onPress }: MemoryCardProps) {
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 
-// Compact card for grid view
 export function MemoryGridCard({ memory, onPress }: MemoryCardProps) {
   const primaryTag = memory.tags[0];
   const tagColor = primaryTag ? TAG_COLORS[primaryTag] : '#E91E8C';
   const tagIcon = primaryTag ? TAG_ICONS[primaryTag] : 'image';
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    flex: 1,
+    aspectRatio: 1,
+  }));
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      activeOpacity={0.8}
-      className="flex-1 bg-card border border-white/10 rounded-2xl overflow-hidden"
-      style={{ aspectRatio: 1 }}
+      onPressIn={() => { scale.value = withSpring(0.96, { damping: 15, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 300 }); }}
+      style={animatedStyle}
+      className="bg-card border border-white/10 rounded-2xl overflow-hidden"
+      accessibilityLabel={`Memória: ${memory.title}, ${memory.date}`}
+      accessibilityRole="button"
+      accessibilityHint="Toque para ampliar"
     >
       <View className="flex-1 items-center justify-center" style={{ backgroundColor: tagColor + '15' }}>
         <Feather name={tagIcon} size={28} color={tagColor} />
@@ -109,6 +144,6 @@ export function MemoryGridCard({ memory, onPress }: MemoryCardProps) {
         <Text className="text-text-primary text-[11px] font-medium" numberOfLines={1}>{memory.title}</Text>
         <Text className="text-text-muted text-[10px]">{memory.date}</Text>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

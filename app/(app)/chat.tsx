@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -8,6 +7,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Skeleton } from '../../components/ui/skeleton';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { MessageBubble, Message, Reaction } from '../../components/chat/message-bubble';
 import { ReactionPicker } from '../../components/chat/reaction-picker';
@@ -47,42 +55,48 @@ function buildMessage(row: MessageRow, currentUserId: string, reactions: Reactio
 
 // ─── Typing indicator ─────────────────────────────────────────────────────────
 
-function TypingIndicator() {
-  const dot1 = useRef(new Animated.Value(0)).current;
-  const dot2 = useRef(new Animated.Value(0)).current;
-  const dot3 = useRef(new Animated.Value(0)).current;
+function TypingDot({ delayMs }: { delayMs: number }) {
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
-    function animateDot(dot: Animated.Value, delay: number) {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(dot, { toValue: -5, duration: 300, useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
-          Animated.delay(600),
-        ])
-      );
-    }
-    const a1 = animateDot(dot1, 0);
-    const a2 = animateDot(dot2, 150);
-    const a3 = animateDot(dot3, 300);
-    a1.start(); a2.start(); a3.start();
-    return () => { a1.stop(); a2.stop(); a3.stop(); };
+    translateY.value = withDelay(
+      delayMs,
+      withRepeat(
+        withSequence(
+          withTiming(-5, { duration: 300 }),
+          withTiming(0, { duration: 300 }),
+          withTiming(0, { duration: 600 })
+        ),
+        -1
+      )
+    );
   }, []);
 
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <View className="flex-row items-end gap-2 mb-2 justify-start">
+    <Animated.View
+      className="w-1.5 h-1.5 rounded-full bg-text-muted"
+      style={style}
+    />
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <View
+      className="flex-row items-end gap-2 mb-2 justify-start"
+      accessibilityLabel="Parceiro(a) está digitando"
+    >
       <View className="w-7 h-7 rounded-full bg-secondary/20 border border-secondary items-center justify-center">
         <Text className="text-secondary text-[10px] font-bold">P</Text>
       </View>
       <View className="bg-card border border-white/10 rounded-2xl rounded-bl-sm px-4 py-3 flex-row gap-1 items-center">
-        {[dot1, dot2, dot3].map((dot, i) => (
-          <Animated.View
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-text-muted"
-            style={{ transform: [{ translateY: dot }] }}
-          />
-        ))}
+        <TypingDot delayMs={0} />
+        <TypingDot delayMs={150} />
+        <TypingDot delayMs={300} />
       </View>
     </View>
   );
@@ -142,7 +156,19 @@ function GeneralChat() {
         showsVerticalScrollIndicator={false}
         onContentSizeChange={scrollToBottom}
         ListEmptyComponent={
-          isLoading ? null : (
+          isLoading ? (
+            <View className="gap-3 py-4">
+              {[1, 2, 3, 4].map((i) => (
+                <View key={i} className={`flex-row gap-2 ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                  {i % 2 !== 0 && <Skeleton width={28} height={28} rounded="full" />}
+                  <View className="gap-1" style={{ maxWidth: '70%' }}>
+                    <Skeleton height={40} rounded="lg" />
+                    <Skeleton height={10} width={60} rounded="sm" />
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
             <View className="items-center gap-3 py-16">
               <Feather name="message-circle" size={48} color="#8B8B9E" />
               <Text className="text-text-muted text-sm text-center">

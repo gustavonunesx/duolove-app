@@ -1,4 +1,9 @@
-import { TouchableOpacity, View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 
 export interface CalendarEvent {
@@ -34,17 +39,31 @@ const TYPE_ICONS: Record<CalendarEvent['type'], React.ComponentProps<typeof Feat
   viagem: 'map-pin',
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function EventCard({ event, onPress }: EventCardProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      activeOpacity={0.75}
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 15, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 300 }); }}
+      style={animatedStyle}
       className="flex-row items-center bg-card border border-white/10 rounded-2xl p-3 gap-3"
+      accessibilityLabel={`${event.title}, ${event.startTime ?? 'dia inteiro'}, ${TYPE_LABELS[event.type]}`}
+      accessibilityRole="button"
+      accessibilityHint="Toque para ver detalhes"
     >
       <View className="w-1 self-stretch rounded-full" style={{ backgroundColor: event.color }} />
       <View
         className="w-9 h-9 rounded-xl items-center justify-center"
         style={{ backgroundColor: event.color + '20' }}
+        importantForAccessibility="no-hide-descendants"
       >
         <Feather name={TYPE_ICONS[event.type]} size={16} color={event.color} />
       </View>
@@ -64,6 +83,6 @@ export function EventCard({ event, onPress }: EventCardProps) {
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }

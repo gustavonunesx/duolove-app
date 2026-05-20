@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 
 export interface Capsule {
@@ -29,7 +36,7 @@ interface CapsuleCardProps {
 export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
   const isRevealed = !!capsule.revealedAt;
   const [countdown, setCountdown] = useState(getCountdown(capsule.revealAt));
-  const glowAnim = useRef(new Animated.Value(0.4)).current;
+  const glowOpacity = useSharedValue(0.4);
 
   useEffect(() => {
     if (isRevealed) return;
@@ -41,34 +48,36 @@ export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
 
   useEffect(() => {
     if (isRevealed) return;
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0.4, duration: 1500, useNativeDriver: true }),
-      ])
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1500 }),
+        withTiming(0.4, { duration: 1500 })
+      ),
+      -1
     );
-    pulse.start();
-    return () => pulse.stop();
   }, [isRevealed]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: isRevealed ? 1 : glowOpacity.value,
+  }));
 
   return (
     <View
       className={`rounded-2xl border overflow-hidden ${
-        isRevealed
-          ? 'bg-card border-primary/30'
-          : 'bg-card border-secondary/40'
+        isRevealed ? 'bg-card border-primary/30' : 'bg-card border-secondary/40'
       }`}
+      accessibilityLabel={
+        isRevealed
+          ? `Cápsula revelada: ${capsule.message}`
+          : `Cápsula do tempo, ${countdown}`
+      }
     >
-      {/* Top bar */}
-      <View
-        className="h-1"
-        style={{ backgroundColor: isRevealed ? '#E91E8C' : '#9B59B6' }}
-      />
+      <View className="h-1" style={{ backgroundColor: isRevealed ? '#E91E8C' : '#9B59B6' }} />
 
       <View className="p-4 gap-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <Animated.View style={{ opacity: isRevealed ? 1 : glowAnim }}>
+            <Animated.View style={glowStyle}>
               <Feather
                 name={isRevealed ? 'unlock' : 'lock'}
                 size={18}
@@ -106,7 +115,9 @@ export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
               className="text-xs font-medium"
               style={{ color: isRevealed ? '#E91E8C' : '#9B59B6' }}
             >
-              {isRevealed ? 'Revelada em ' + new Date(capsule.revealedAt!).toLocaleDateString('pt-BR') : countdown}
+              {isRevealed
+                ? 'Revelada em ' + new Date(capsule.revealedAt!).toLocaleDateString('pt-BR')
+                : countdown}
             </Text>
           </View>
           {!isRevealed && onReveal && countdown === 'Revelar agora!' && (
@@ -114,6 +125,8 @@ export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
               onPress={() => onReveal(capsule.id)}
               activeOpacity={0.8}
               className="bg-primary rounded-xl px-4 py-1.5"
+              accessibilityLabel="Revelar cápsula do tempo"
+              accessibilityRole="button"
             >
               <Text className="text-white text-xs font-semibold">Revelar</Text>
             </TouchableOpacity>

@@ -1,5 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { CalendarEvent } from './event-card';
 
@@ -25,66 +31,81 @@ interface EventDetailSheetProps {
 }
 
 export function EventDetailSheet({ event, visible, onClose, onDelete }: EventDetailSheetProps) {
-  const slideAnim = useRef(new Animated.Value(500)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const slideAnim = useSharedValue(500);
+  const backdropOpacity = useSharedValue(0);
+
+  const slideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: slideAnim.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0 }),
-        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
+      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
+      backdropOpacity.value = withTiming(1, { duration: 200 });
     } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 500, duration: 250, useNativeDriver: true }),
-        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
+      slideAnim.value = withTiming(500, { duration: 250 });
+      backdropOpacity.value = withTiming(0, { duration: 200 });
     }
   }, [visible]);
 
   if (!event) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-      <Animated.View className="flex-1 bg-black/60 justify-end" style={{ opacity: backdropOpacity }}>
-        <Pressable className="flex-1" onPress={onClose} />
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
+      <Animated.View className="flex-1 bg-black/60 justify-end" style={backdropStyle}>
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={{ transform: [{ translateY: slideAnim }] }}
+          style={slideStyle}
         >
-          {/* Handle */}
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />
           </View>
 
-          {/* Header */}
           <View className="flex-row items-center justify-between px-5 py-3">
             <View className="flex-row items-center gap-3">
               <View
                 className="w-10 h-10 rounded-xl items-center justify-center"
                 style={{ backgroundColor: event.color + '20' }}
+                importantForAccessibility="no-hide-descendants"
               >
                 <Feather name={TYPE_ICONS[event.type]} size={18} color={event.color} />
               </View>
               <View>
-                <Text className="text-text-primary font-bold text-lg" numberOfLines={1}>{event.title}</Text>
+                <Text
+                  className="text-text-primary font-bold text-lg"
+                  numberOfLines={1}
+                  accessibilityRole="header"
+                >
+                  {event.title}
+                </Text>
                 <Text className="text-text-muted text-xs">{TYPE_LABELS[event.type]}</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={onClose}
+              activeOpacity={0.7}
+              accessibilityLabel="Fechar"
+              accessibilityRole="button"
+            >
               <Feather name="x" size={22} color="#8B8B9E" />
             </TouchableOpacity>
           </View>
 
-          {/* Body */}
           <View className="px-5 pb-10 gap-4">
-            {/* Date & time */}
             <View className="flex-row gap-3">
-              <View className="flex-1 bg-surface rounded-2xl p-3">
+              <View className="flex-1 bg-surface rounded-2xl p-3" accessibilityLabel={`Data: ${event.date}`}>
                 <Text className="text-text-muted text-xs mb-1">Data</Text>
                 <Text className="text-text-primary text-sm font-semibold">{event.date}</Text>
               </View>
-              <View className="flex-1 bg-surface rounded-2xl p-3">
+              <View
+                className="flex-1 bg-surface rounded-2xl p-3"
+                accessibilityLabel={`Horário: ${event.startTime ? `${event.startTime}${event.endTime ? ` até ${event.endTime}` : ''}` : 'Dia inteiro'}`}
+              >
                 <Text className="text-text-muted text-xs mb-1">Horário</Text>
                 <Text className="text-text-primary text-sm font-semibold">
                   {event.startTime
@@ -94,15 +115,13 @@ export function EventDetailSheet({ event, visible, onClose, onDelete }: EventDet
               </View>
             </View>
 
-            {/* Description */}
             {event.description ? (
-              <View className="bg-surface rounded-2xl p-4">
+              <View className="bg-surface rounded-2xl p-4" accessibilityLabel={`Descrição: ${event.description}`}>
                 <Text className="text-text-muted text-xs mb-1">Descrição</Text>
                 <Text className="text-text-primary text-sm">{event.description}</Text>
               </View>
             ) : null}
 
-            {/* Meta row */}
             <View className="flex-row gap-3">
               <View className="flex-1 bg-surface rounded-2xl p-3 flex-row items-center gap-2">
                 <Feather name={event.visibility === 'compartilhado' ? 'users' : 'lock'} size={14} color="#8B8B9E" />
@@ -116,12 +135,13 @@ export function EventDetailSheet({ event, visible, onClose, onDelete }: EventDet
               </View>
             </View>
 
-            {/* Delete */}
             {onDelete && (
               <TouchableOpacity
                 onPress={() => { onDelete(event.id); onClose(); }}
                 activeOpacity={0.7}
                 className="flex-row items-center justify-center gap-2 border border-red-500/30 rounded-2xl py-3"
+                accessibilityLabel="Excluir este evento"
+                accessibilityRole="button"
               >
                 <Feather name="trash-2" size={16} color="#FF4D4D" />
                 <Text className="text-red-400 text-sm font-medium">Excluir evento</Text>

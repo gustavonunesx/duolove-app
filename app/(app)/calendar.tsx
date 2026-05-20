@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
 import { DayCell } from '../../components/calendar/day-cell';
 import { EventCard, CalendarEvent } from '../../components/calendar/event-card';
@@ -397,8 +398,7 @@ export default function CalendarScreen() {
       {/* Header */}
       <View className="px-5 pt-14 pb-3 flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <Text className="text-text-primary text-2xl font-bold">Calendário</Text>
-          {isLoading && <ActivityIndicator size="small" color="#E91E8C" />}
+          <Text className="text-text-primary text-2xl font-bold" accessibilityRole="header">Calendário</Text>
         </View>
         <TouchableOpacity
           onPress={() => setFormVisible(true)}
@@ -466,8 +466,26 @@ export default function CalendarScreen() {
         </View>
 
         {/* Event list */}
-        {dayEvents.length === 0 ? (
-          <View className="bg-card border border-white/10 rounded-2xl p-8 items-center gap-3">
+        {isLoading ? (
+          <View className="gap-2">
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i}>
+                <View className="flex-row gap-3 items-center">
+                  <Skeleton width={4} height={48} rounded="full" />
+                  <Skeleton width={36} height={36} rounded="lg" />
+                  <View className="flex-1 gap-2">
+                    <Skeleton height={14} width="70%" />
+                    <Skeleton height={11} width="40%" />
+                  </View>
+                </View>
+              </SkeletonCard>
+            ))}
+          </View>
+        ) : dayEvents.length === 0 ? (
+          <View
+            className="bg-card border border-white/10 rounded-2xl p-8 items-center gap-3"
+            accessibilityLabel="Nenhum evento para este dia"
+          >
             <Feather name="calendar" size={36} color="#8B8B9E" />
             <Text className="text-text-muted text-sm text-center">
               Nenhum evento para este dia 💭{'\n'}Que tal planejar algo juntos?
@@ -476,6 +494,8 @@ export default function CalendarScreen() {
               onPress={() => setFormVisible(true)}
               activeOpacity={0.8}
               className="bg-primary/10 border border-primary/30 px-5 py-2 rounded-full"
+              accessibilityLabel="Criar evento"
+              accessibilityRole="button"
             >
               <Text className="text-primary text-sm font-medium">Criar evento</Text>
             </TouchableOpacity>

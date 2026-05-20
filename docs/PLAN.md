@@ -379,17 +379,17 @@ feat(premium): add Stripe subscription flow and premium feature gating
 
 ### Entregas
 
-- [ ] Revisar e completar animações Reanimated em todas as telas
+- [x] Revisar e completar animações Reanimated em todas as telas
+- [x] Microinterações: press feedback com Reanimated em cards, botões e mensagens
+- [x] Skeleton loaders consistentes em calendário, chat e memórias
+- [x] Estados vazios com copy afetivo em todas as seções
+- [x] Acessibilidade: `accessibilityLabel`, `accessibilityRole` em telas principais
+- [x] Otimização de imagens com `expo-image` (memory cards e lightbox)
+- [x] Haptic feedback nas ações principais (`expo-haptics`) — botões, reações, premium
+- [x] Splash screen animada com `expo-splash-screen` (fade-in após hide)
 - [ ] Transições de tela suaves (shared element transitions onde possível)
-- [ ] Microinterações: press feedback, loading states, estados de sucesso/erro
-- [ ] Skeleton loaders consistentes em todos os estados de carregamento
-- [ ] Estados vazios com copy afetivo em todas as seções
-- [ ] Acessibilidade: `accessibilityLabel`, `accessibilityRole`, foco de teclado
 - [ ] Teste em múltiplos tamanhos de tela (SE, 14, 14 Pro Max, Pixel 7)
-- [ ] Otimização de imagens com `expo-image`
 - [ ] Lazy loading de telas pesadas
-- [ ] Haptic feedback nas ações principais (`expo-haptics`)
-- [ ] Splash screen animada com `expo-splash-screen`
 - [ ] Ícone final do app e adaptive icon Android
 - [ ] Auditoria de performance (sem jank no scroll do calendário e timeline)
 

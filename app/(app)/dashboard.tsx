@@ -1,5 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, Text, View, Image, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withDelay,
+  Easing,
+  useDerivedValue,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 
@@ -32,26 +42,48 @@ function getDaysTogether(): number {
 }
 
 function AnimatedCounter({ target }: { target: number }) {
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  const progress = useSharedValue(0);
   const [displayed, setDisplayed] = useState(0);
 
+  useDerivedValue(() => {
+    const value = Math.floor(progress.value * target);
+    runOnJS(setDisplayed)(value);
+  });
+
   useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: target,
-      duration: 1200,
-      useNativeDriver: false,
-    }).start();
-
-    const listener = animatedValue.addListener(({ value }) => {
-      setDisplayed(Math.floor(value));
+    progress.value = withTiming(1, {
+      duration: 1400,
+      easing: Easing.out(Easing.cubic),
     });
-
-    return () => animatedValue.removeListener(listener);
   }, [target]);
 
   return (
-    <Text className="text-5xl font-bold text-primary text-center">{displayed.toLocaleString('pt-BR')}</Text>
+    <Text
+      className="text-5xl font-bold text-primary text-center"
+      accessibilityLabel={`${target} dias juntos`}
+    >
+      {displayed.toLocaleString('pt-BR')}
+    </Text>
   );
+}
+
+// ─── Fade-in card ─────────────────────────────────────────────────────────────
+
+function FadeInCard({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(16);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    translateY.value = withDelay(delay, withSpring(0, { damping: 20, stiffness: 180 }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={style}>{children}</Animated.View>;
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -61,10 +93,16 @@ function AppHeader() {
     <View className="flex-row items-center justify-between px-5 pt-14 pb-4">
       <View className="flex-row items-center gap-3">
         <View className="flex-row">
-          <View className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary items-center justify-center z-10">
+          <View
+            className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary items-center justify-center z-10"
+            accessibilityLabel="Seu avatar"
+          >
             <Text className="text-primary font-bold text-sm">G</Text>
           </View>
-          <View className="w-10 h-10 rounded-full bg-secondary/20 border-2 border-secondary items-center justify-center -ml-3">
+          <View
+            className="w-10 h-10 rounded-full bg-secondary/20 border-2 border-secondary items-center justify-center -ml-3"
+            accessibilityLabel="Avatar do parceiro"
+          >
             <Text className="text-secondary font-bold text-sm">A</Text>
           </View>
         </View>
@@ -73,7 +111,12 @@ function AppHeader() {
           <Text className="text-text-muted text-xs">juntos desde fev 2023</Text>
         </View>
       </View>
-      <TouchableOpacity activeOpacity={0.7} className="w-9 h-9 rounded-full bg-card border border-white/10 items-center justify-center">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        className="w-9 h-9 rounded-full bg-card border border-white/10 items-center justify-center"
+        accessibilityLabel="Notificações"
+        accessibilityRole="button"
+      >
         <Feather name="bell" size={18} color="#8B8B9E" />
       </TouchableOpacity>
     </View>
@@ -85,7 +128,7 @@ function AppHeader() {
 function DaysTogetherCard() {
   const days = getDaysTogether();
   return (
-    <GlassCard className="items-center gap-2">
+    <GlassCard className="items-center gap-2" accessibilityLabel={`Vocês estão juntos há ${days} dias`}>
       <View className="flex-row items-center gap-2 mb-1">
         <Feather name="heart" size={16} color="#E91E8C" />
         <Text className="text-text-muted text-sm font-medium">Dias juntos</Text>
@@ -115,12 +158,16 @@ function NextEventsCard() {
           <Feather name="calendar" size={15} color="#E91E8C" />
           <Text className="text-text-primary font-semibold text-sm">Próximos eventos</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity activeOpacity={0.7} accessibilityLabel="Ver todos os eventos" accessibilityRole="link">
           <Text className="text-primary text-xs font-medium">Ver todos</Text>
         </TouchableOpacity>
       </View>
       {MOCK_EVENTS.map((event) => (
-        <View key={event.id} className="flex-row items-center gap-3">
+        <View
+          key={event.id}
+          className="flex-row items-center gap-3"
+          accessibilityLabel={`${event.title}, ${event.date} às ${event.time}`}
+        >
           <View className="w-1 h-10 rounded-full" style={{ backgroundColor: event.color }} />
           <View className="flex-1">
             <Text className="text-text-primary text-sm font-medium" numberOfLines={1}>{event.title}</Text>
@@ -143,7 +190,11 @@ function AnniversariesCard() {
         <Text className="text-text-primary font-semibold text-sm">Datas especiais</Text>
       </View>
       {MOCK_ANNIVERSARIES.map((a) => (
-        <View key={a.id} className="flex-row items-center justify-between">
+        <View
+          key={a.id}
+          className="flex-row items-center justify-between"
+          accessibilityLabel={`${a.title}, ${a.date}, ${a.daysLeft === 0 ? 'hoje' : `em ${a.daysLeft} dias`}`}
+        >
           <View className="flex-1">
             <Text className="text-text-primary text-sm font-medium">{a.title}</Text>
             <Text className="text-text-muted text-xs">{a.date}</Text>
@@ -161,19 +212,27 @@ function AnniversariesCard() {
 
 function PartnerStatusCard() {
   return (
-    <GlassCard>
+    <GlassCard accessibilityLabel="Ana está online e viu sua última mensagem">
       <View className="flex-row items-center gap-3">
         <View className="relative">
           <View className="w-12 h-12 rounded-full bg-secondary/20 border-2 border-secondary items-center justify-center">
             <Text className="text-secondary font-bold">A</Text>
           </View>
-          <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card" />
+          <View
+            className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card"
+            accessibilityLabel="Online"
+          />
         </View>
         <View className="flex-1">
           <Text className="text-text-primary font-semibold text-sm">Ana está online</Text>
           <Text className="text-text-muted text-xs">Viu sua última mensagem</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7} className="bg-primary/10 px-4 py-2 rounded-full">
+        <TouchableOpacity
+          activeOpacity={0.7}
+          className="bg-primary/10 px-4 py-2 rounded-full"
+          accessibilityLabel="Enviar mensagem para Ana"
+          accessibilityRole="button"
+        >
           <Text className="text-primary text-xs font-semibold">Mensagem</Text>
         </TouchableOpacity>
       </View>
@@ -189,7 +248,11 @@ function LastMemoryCard() {
           <Feather name="image" size={15} color="#E91E8C" />
           <Text className="text-text-primary font-semibold text-sm">Última memória</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          accessibilityLabel="Ver todas as memórias"
+          accessibilityRole="link"
+        >
           <Text className="text-primary text-xs font-medium">Ver todas</Text>
         </TouchableOpacity>
       </View>
@@ -217,11 +280,11 @@ export default function DashboardScreen() {
         contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <DaysTogetherCard />
-        <PartnerStatusCard />
-        <NextEventsCard />
-        <AnniversariesCard />
-        <LastMemoryCard />
+        <FadeInCard delay={0}><DaysTogetherCard /></FadeInCard>
+        <FadeInCard delay={80}><PartnerStatusCard /></FadeInCard>
+        <FadeInCard delay={160}><NextEventsCard /></FadeInCard>
+        <FadeInCard delay={240}><AnniversariesCard /></FadeInCard>
+        <FadeInCard delay={320}><LastMemoryCard /></FadeInCard>
       </ScrollView>
     </View>
   );

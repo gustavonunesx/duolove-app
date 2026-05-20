@@ -87,7 +87,7 @@ duolove-app/
 ### Estilo Visual
 - Dark-first: modo escuro é a experiência principal
 - Bordas totalmente arredondadas (`rounded-2xl`, `rounded-full`)
-- Animações com `Animated` do React Native (M2–M6) → Reanimated após EAS Build (M12)
+- Animações com Reanimated v3 (migrado na M12 — todas as telas e componentes)
 - Tom íntimo e afetivo — nunca corporativo
 
 ---
@@ -157,8 +157,8 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M9 | `feat/backend-social` | Chat, memórias e upload real | ✅ Concluída |
 | M10 | `feat/notifications` | Push notifications (Expo) + email (Resend) | ✅ Concluída |
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ✅ Concluída |
-| M12 | `feat/polish` | Animações, acessibilidade, performance | ⬜ Próxima |
-| M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ⬜ |
+| M12 | `feat/polish` | Animações, acessibilidade, performance | ✅ Concluída |
+| M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ⬜ Próxima |
 
 ---
 
