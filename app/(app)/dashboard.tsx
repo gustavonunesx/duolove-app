@@ -3,7 +3,7 @@ import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'reac
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
-import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
+
 import { useAuth } from '../../hooks/use-auth';
 import { useCouple } from '../../hooks/use-couple';
 import { useEvents } from '../../hooks/use-events';
@@ -112,7 +112,6 @@ function AppHeader({ userName, partnerName }: { userName: string; partnerName: s
           )}
         </View>
       </View>
-      <DrawerMenuButton />
     </View>
   );
 }

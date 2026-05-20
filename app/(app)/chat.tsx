@@ -10,7 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import { MessageInput } from '../../components/chat/message-input';
 import { PremiumGateScreen } from '../../components/ui/premium-gate';
 import { Skeleton } from '../../components/ui/skeleton';
-import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
+
 import { useSubscription } from '../../hooks/use-subscription';
 import { useAiChat } from '../../hooks/use-ai-chat';
 import { AiMessageRow } from '../../lib/supabase/ai-chat';
@@ -187,7 +187,6 @@ export default function ChatScreen() {
     <View className="flex-1 bg-surface">
       <View className="px-5 pt-14 pb-3 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
-          <DrawerMenuButton />
           <View className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary items-center justify-center">
             <Text className="text-primary text-sm font-black">D</Text>
           </View>

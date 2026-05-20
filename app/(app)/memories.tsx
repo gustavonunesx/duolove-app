@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
-import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
+
 import { Memory, MemoryCard, MemoryGridCard, MemoryTag } from '../../components/memories/memory-card';
 import { MemoryLightbox } from '../../components/memories/memory-lightbox';
 import { Capsule, CapsuleCard } from '../../components/memories/capsule-card';
@@ -348,7 +348,6 @@ export default function MemoriesScreen() {
       <View className="px-5 pt-14 pb-3">
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center gap-3">
-            <DrawerMenuButton />
             <Text className="text-text-primary text-2xl font-bold">Memórias</Text>
           </View>
           <TouchableOpacity

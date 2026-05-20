@@ -1,7 +1,7 @@
 import { FlatList, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
-import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
+
 import { useProducts } from '../../hooks/use-products';
 import { useEvents } from '../../hooks/use-events';
 import { Skeleton } from '../../components/ui/skeleton';
@@ -76,7 +76,6 @@ export default function ProductsScreen() {
     <ScrollView className="flex-1 bg-surface" showsVerticalScrollIndicator={false}>
       <View className="px-5 pt-14 pb-4">
         <View className="flex-row items-center gap-3 mb-1">
-          <DrawerMenuButton />
           <Text className="text-text-primary text-2xl font-bold">Produtos</Text>
         </View>
         <Text className="text-text-muted text-sm">Presentes e experiências para vocês dois</Text>
