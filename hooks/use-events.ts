@@ -22,8 +22,12 @@ export function useEvents() {
   useEffect(() => {
     if (!coupleId) return;
 
+    const channelName = `couple:${coupleId}:events`;
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel(`couple:${coupleId}:events`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'events', filter: `couple_id=eq.${coupleId}` },

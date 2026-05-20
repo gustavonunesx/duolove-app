@@ -37,8 +37,12 @@ export function useMessages(eventId?: string | null) {
   useEffect(() => {
     if (!coupleId) return;
 
+    const channelName = `couple:${coupleId}:messages`;
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel(`couple:${coupleId}:messages`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `couple_id=eq.${coupleId}` },

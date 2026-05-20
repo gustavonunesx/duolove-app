@@ -44,14 +44,21 @@ Deno.serve(async (req) => {
     // Fetch couple
     const { data: couple } = await supabase
       .from('couples')
-      .select('id, plan, start_date, user1_id, user2_id')
+      .select('id, start_date, user1_id, user2_id')
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .single();
 
     if (!couple) return jsonResponse({ error: 'Casal não encontrado' }, 404);
 
-    // Premium check
-    if (couple.plan !== 'premium') {
+    // Premium check via subscriptions table
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('couple_id', couple.id)
+      .single();
+
+    const isPremium = subscription?.plan === 'premium' && subscription?.status === 'active';
+    if (!isPremium) {
       return jsonResponse({ error: 'Premium required' }, 403);
     }
 
