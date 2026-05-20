@@ -158,7 +158,7 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M10 | `feat/notifications` | Push notifications (Expo) + email (Resend) | ✅ Concluída |
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ✅ Concluída |
 | M12 | `feat/polish` | Animações, acessibilidade, performance | ✅ Concluída |
-| M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ⬜ Próxima |
+| M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ✅ Concluída |
 
 ---
 

@@ -407,25 +407,25 @@ feat(polish): finalize animations, accessibility and performance
 
 ### Entregas
 
-- [ ] Configurar conta Expo EAS e `eas.json`
-- [ ] Configurar variáveis de ambiente de produção no EAS
-- [ ] Build de produção Android: `eas build --platform android`
-- [ ] Build de produção iOS: `eas build --platform ios`
-- [ ] Configurar Supabase de produção (projeto separado do dev)
-- [ ] Rodar migrations em produção (`prisma migrate deploy`)
-- [ ] Configurar OAuth Google/Apple com bundle IDs de produção
-- [ ] Configurar webhook Stripe apontando para produção
-- [ ] Submissão à Google Play Store: `eas submit --platform android`
-- [ ] Submissão à Apple App Store: `eas submit --platform ios`
-- [ ] Smoke test completo em produção:
-  - [ ] Cadastro + invite de casal
-  - [ ] Criar e visualizar evento
-  - [ ] Chat em tempo real
-  - [ ] Upload de memória
-  - [ ] Checkout premium
-  - [ ] Push notification recebida
-- [ ] Configurar OTA updates com `expo-updates`
-- [ ] Checklist de segurança: RLS ativo, service role key não exposta
+- [x] Configurar conta Expo EAS e `eas.json`
+- [x] Configurar variáveis de ambiente de produção no EAS
+- [x] Build de produção Android: `eas build --platform android`
+- [x] Build de produção iOS: `eas build --platform ios`
+- [x] Configurar Supabase de produção (projeto separado do dev)
+- [x] Rodar migrations em produção (schema.sql via Supabase Dashboard)
+- [x] Configurar OAuth Google/Apple com bundle IDs de produção
+- [x] Configurar webhook Stripe apontando para produção
+- [x] Submissão à Google Play Store: `eas submit --platform android`
+- [x] Submissão à Apple App Store: `eas submit --platform ios`
+- [x] Smoke test completo em produção:
+  - [x] Cadastro + invite de casal
+  - [x] Criar e visualizar evento
+  - [x] Chat em tempo real
+  - [x] Upload de memória
+  - [x] Checkout premium
+  - [x] Push notification recebida
+- [x] Configurar OTA updates com `expo-updates`
+- [x] Checklist de segurança: RLS ativo, service role key não exposta
 
 **Commit final:**
 ```
