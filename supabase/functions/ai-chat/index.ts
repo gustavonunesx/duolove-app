@@ -1,14 +1,9 @@
 // Supabase Edge Function — ai-chat
-// Chat com o Duo (IA conselheira do casal) via Claude Haiku
+// Chat com o Duo (IA conselheira do casal) via OpenAI GPT-4o-mini
 // Deploy: supabase functions deploy ai-chat
-// Env vars: ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+// Env vars: OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
-import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.27.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const anthropic = new Anthropic({
-  apiKey: Deno.env.get('ANTHROPIC_API_KEY')!,
-});
 
 const MONTHLY_LIMIT = 50;
 const MAX_CONTEXT_MESSAGES = 15;
@@ -120,7 +115,7 @@ Diretrizes:
 - Não dê conselhos médicos ou jurídicos
 - Se o casal tiver conflitos, seja neutro e empático com ambos os lados`;
 
-    // Build messages for Claude
+    // Build messages for OpenAI
     const contextMessages = (history ?? []).reverse().map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
@@ -128,15 +123,31 @@ Diretrizes:
 
     contextMessages.push({ role: 'user', content: message });
 
-    // Call Claude Haiku
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: MAX_TOKENS,
-      system: systemPrompt,
-      messages: contextMessages,
+    // Call OpenAI GPT-4o-mini
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: MAX_TOKENS,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...contextMessages,
+        ],
+      }),
     });
 
-    const reply = response.content[0].type === 'text' ? response.content[0].text : '';
+    if (!openaiRes.ok) {
+      const err = await openaiRes.json().catch(() => ({}));
+      console.error('OpenAI error:', err);
+      return jsonResponse({ error: 'Erro ao chamar a IA' }, 502);
+    }
+
+    const openaiData = await openaiRes.json();
+    const reply: string = openaiData.choices?.[0]?.message?.content ?? '';
 
     // Persist messages
     await supabase.from('ai_messages').insert([
