@@ -34,7 +34,13 @@
           "defaultChannel": "default"
         }
       ],
-      "@stripe/stripe-react-native"
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.duolove.app",
+          "enableGooglePay": false
+        }
+      ]
     ],
     "scheme": "duolove",
     "experiments": {

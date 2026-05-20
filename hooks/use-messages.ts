@@ -66,13 +66,15 @@ export function useMessages(eventId?: string | null) {
   }, [coupleId, eventId]);
 
   const send = useMutation({
-    mutationFn: (content: string) =>
-      sendMessage({
-        couple_id: coupleId!,
-        sender_id: user!.id,
+    mutationFn: (content: string) => {
+      if (!coupleId || !user) throw new Error('Sem casal vinculado');
+      return sendMessage({
+        couple_id: coupleId,
+        sender_id: user.id,
         event_id: eventId ?? null,
         content,
-      }),
+      });
+    },
     onSuccess: (newMsg) => {
       queryClient.setQueryData<MessageRow[]>(messagesKey, (prev = []) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;

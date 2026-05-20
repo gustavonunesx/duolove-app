@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -10,12 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { CalendarEvent } from './event-card';
 
@@ -36,8 +31,8 @@ interface EventFormSheetProps {
 }
 
 export function EventFormSheet({ visible, selectedDate, onClose, onSave }: EventFormSheetProps) {
-  const slideAnim = useSharedValue(600);
-  const backdropOpacity = useSharedValue(0);
+  const slideAnim = useRef(new Animated.Value(600)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -47,22 +42,17 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
-  const slideStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideAnim.value }],
-    marginTop: -600,
-  }));
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
   useEffect(() => {
     if (visible) {
-      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
-      backdropOpacity.value = withTiming(1, { duration: 200 });
+      Animated.parallel([
+        Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
     } else {
-      slideAnim.value = withTiming(600, { duration: 250 });
-      backdropOpacity.value = withTiming(0, { duration: 200 });
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 600, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
       setTitle('');
       setDescription('');
       setType('casal');
@@ -96,14 +86,14 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
       >
         <Animated.View
           className="flex-1 bg-black/60"
-          style={backdropStyle}
+          style={{ opacity: backdropOpacity }}
         >
           <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         </Animated.View>
 
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={slideStyle}
+          style={{ transform: [{ translateY: slideAnim }], marginTop: -600 }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />

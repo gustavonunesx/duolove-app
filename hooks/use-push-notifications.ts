@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   upsertPushToken,
@@ -10,6 +11,9 @@ import {
   NotificationPreferences,
 } from '../lib/supabase/push-tokens';
 import { useAuth } from './use-auth';
+
+// expo-notifications push tokens are not supported in Expo Go since SDK 53
+const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -22,6 +26,8 @@ Notifications.setNotificationHandler({
 });
 
 async function requestPermissionAndGetToken(): Promise<string | null> {
+  if (IS_EXPO_GO) return null;
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'DuoLove',

@@ -1,11 +1,5 @@
-import { useEffect } from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { Memory } from './memory-card';
@@ -17,26 +11,22 @@ interface MemoryLightboxProps {
 }
 
 export function MemoryLightbox({ memory, visible, onClose }: MemoryLightboxProps) {
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.9);
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
     if (visible) {
-      opacity.value = withTiming(1, { duration: 200 });
-      scale.value = withSpring(1, { damping: 16, stiffness: 200 });
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1, damping: 16, stiffness: 200, useNativeDriver: true }),
+      ]).start();
     } else {
-      opacity.value = withTiming(0, { duration: 180 });
-      scale.value = withTiming(0.9, { duration: 180 });
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 0.9, duration: 180, useNativeDriver: true }),
+      ]).start();
     }
   }, [visible]);
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   if (!memory) return null;
 
@@ -48,7 +38,7 @@ export function MemoryLightbox({ memory, visible, onClose }: MemoryLightboxProps
       onRequestClose={onClose}
       accessibilityViewIsModal
     >
-      <Animated.View className="flex-1 bg-black/90 justify-center" style={backdropStyle}>
+      <Animated.View className="flex-1 bg-black/90 justify-center" style={{ opacity }}>
         <Pressable
           className="absolute inset-0"
           onPress={onClose}
@@ -57,7 +47,7 @@ export function MemoryLightbox({ memory, visible, onClose }: MemoryLightboxProps
 
         <Animated.View
           className="mx-4 bg-card rounded-3xl overflow-hidden border border-white/10"
-          style={cardStyle}
+          style={{ transform: [{ scale }] }}
         >
           {memory.photoPlaceholder.startsWith('http') ? (
             <Image

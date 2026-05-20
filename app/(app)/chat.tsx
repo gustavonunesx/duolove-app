@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -8,14 +9,6 @@ import {
   View,
 } from 'react-native';
 import { Skeleton } from '../../components/ui/skeleton';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  withDelay,
-} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { MessageBubble, Message, Reaction } from '../../components/chat/message-bubble';
 import { ReactionPicker } from '../../components/chat/reaction-picker';
@@ -56,30 +49,25 @@ function buildMessage(row: MessageRow, currentUserId: string, reactions: Reactio
 // ─── Typing indicator ─────────────────────────────────────────────────────────
 
 function TypingDot({ delayMs }: { delayMs: number }) {
-  const translateY = useSharedValue(0);
+  const translateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    translateY.value = withDelay(
-      delayMs,
-      withRepeat(
-        withSequence(
-          withTiming(-5, { duration: 300 }),
-          withTiming(0, { duration: 300 }),
-          withTiming(0, { duration: 600 })
-        ),
-        -1
-      )
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delayMs),
+        Animated.timing(translateY, { toValue: -5, duration: 300, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
+        Animated.delay(600),
+      ])
     );
+    loop.start();
+    return () => loop.stop();
   }, []);
-
-  const style = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
 
   return (
     <Animated.View
       className="w-1.5 h-1.5 rounded-full bg-text-muted"
-      style={style}
+      style={{ transform: [{ translateY }] }}
     />
   );
 }

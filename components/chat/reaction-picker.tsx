@@ -1,11 +1,5 @@
-import { useEffect } from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 const EMOJI_OPTIONS = ['❤️', '😂', '😍', '😮', '😢', '👏'];
@@ -17,23 +11,22 @@ interface ReactionPickerProps {
 }
 
 export function ReactionPicker({ visible, onSelect, onClose }: ReactionPickerProps) {
-  const scale = useSharedValue(0.7);
-  const opacity = useSharedValue(0);
+  const scale = useRef(new Animated.Value(0.7)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      scale.value = withSpring(1, { damping: 14, stiffness: 200 });
-      opacity.value = withTiming(1, { duration: 150 });
+      Animated.parallel([
+        Animated.spring(scale, { toValue: 1, damping: 14, stiffness: 200, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+      ]).start();
     } else {
-      scale.value = withTiming(0.7, { duration: 150 });
-      opacity.value = withTiming(0, { duration: 150 });
+      Animated.parallel([
+        Animated.timing(scale, { toValue: 0.7, duration: 150, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 150, useNativeDriver: true }),
+      ]).start();
     }
   }, [visible]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
 
   async function handleSelect(emoji: string) {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -56,7 +49,7 @@ export function ReactionPicker({ visible, onSelect, onClose }: ReactionPickerPro
         accessibilityRole="button"
       >
         <Animated.View
-          style={animatedStyle}
+          style={{ opacity, transform: [{ scale }] }}
           className="bg-card border border-white/10 rounded-2xl px-4 py-3 flex-row gap-3"
         >
           {EMOJI_OPTIONS.map((emoji) => (

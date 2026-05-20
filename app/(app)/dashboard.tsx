@@ -1,15 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withDelay,
-  Easing,
-  useDerivedValue,
-  runOnJS,
-} from 'react-native-reanimated';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 
@@ -42,19 +32,20 @@ function getDaysTogether(): number {
 }
 
 function AnimatedCounter({ target }: { target: number }) {
-  const progress = useSharedValue(0);
+  const progress = useRef(new Animated.Value(0)).current;
   const [displayed, setDisplayed] = useState(0);
 
-  useDerivedValue(() => {
-    const value = Math.floor(progress.value * target);
-    runOnJS(setDisplayed)(value);
-  });
-
   useEffect(() => {
-    progress.value = withTiming(1, {
+    const listener = progress.addListener(({ value }) => {
+      setDisplayed(Math.floor(value * target));
+    });
+    Animated.timing(progress, {
+      toValue: 1,
       duration: 1400,
       easing: Easing.out(Easing.cubic),
-    });
+      useNativeDriver: false,
+    }).start();
+    return () => progress.removeListener(listener);
   }, [target]);
 
   return (
@@ -70,20 +61,33 @@ function AnimatedCounter({ target }: { target: number }) {
 // ─── Fade-in card ─────────────────────────────────────────────────────────────
 
 function FadeInCard({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(16);
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
 
   useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
-    translateY.value = withDelay(delay, withSpring(0, { damping: 20, stiffness: 180 }));
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        delay,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        damping: 20,
+        stiffness: 180,
+        delay,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
-  const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return <Animated.View style={style}>{children}</Animated.View>;
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+      {children}
+    </Animated.View>
+  );
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────

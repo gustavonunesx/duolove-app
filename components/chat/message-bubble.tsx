@@ -1,9 +1,5 @@
-import { Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 
 export interface Reaction {
@@ -28,22 +24,16 @@ interface MessageBubbleProps {
   onReactionPress: (messageId: string, emoji: string) => void;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 export function MessageBubble({ message, onLongPress, onReactionPress }: MessageBubbleProps) {
   const isMe = message.senderId === 'me';
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: 0.97, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   function handlePressOut() {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: 1, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   async function handleLongPress() {
@@ -66,25 +56,26 @@ export function MessageBubble({ message, onLongPress, onReactionPress }: Message
       )}
 
       <View className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
-        <AnimatedTouchable
-          onLongPress={handleLongPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={1}
-          delayLongPress={350}
-          style={animatedStyle}
-          className={`rounded-2xl px-4 py-2.5 ${
-            isMe
-              ? 'bg-primary rounded-br-sm'
-              : 'bg-card border border-white/10 rounded-bl-sm'
-          }`}
-          accessibilityLabel={message.content}
-          accessibilityHint="Pressione e segure para reagir"
-        >
-          <Text className={`text-sm leading-5 ${isMe ? 'text-white' : 'text-text-primary'}`}>
-            {message.content}
-          </Text>
-        </AnimatedTouchable>
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <TouchableOpacity
+            onLongPress={handleLongPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            activeOpacity={1}
+            delayLongPress={350}
+            className={`rounded-2xl px-4 py-2.5 ${
+              isMe
+                ? 'bg-primary rounded-br-sm'
+                : 'bg-card border border-white/10 rounded-bl-sm'
+            }`}
+            accessibilityLabel={message.content}
+            accessibilityHint="Pressione e segure para reagir"
+          >
+            <Text className={`text-sm leading-5 ${isMe ? 'text-white' : 'text-text-primary'}`}>
+              {message.content}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {message.reactions.length > 0 && (
           <View className="flex-row flex-wrap gap-1 mt-1">

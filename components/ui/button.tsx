@@ -1,8 +1,6 @@
-import { ActivityIndicator, Text, View } from 'react-native';
-import { ReactNode } from 'react';
+import { ActivityIndicator, Animated, Pressable, Text, View } from 'react-native';
+import { ReactNode, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { Pressable } from 'react-native';
 
 type Variant = 'primary' | 'outline' | 'ghost' | 'social';
 
@@ -37,8 +35,6 @@ const variantStyles: Record<Variant, { container: string; text: string }> = {
   },
 };
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export function Button({
   onPress,
   children,
@@ -52,18 +48,14 @@ export function Button({
 }: ButtonProps) {
   const styles = variantStyles[variant];
   const isDisabled = disabled || loading;
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: 0.97, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   function handlePressOut() {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: 1, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   async function handlePress() {
@@ -73,26 +65,27 @@ export function Button({
   }
 
   return (
-    <AnimatedPressable
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={isDisabled}
-      style={animatedStyle}
-      className={`${styles.container} ${fullWidth ? 'w-full' : ''} ${isDisabled ? 'opacity-50' : ''}`}
-      accessibilityLabel={accessibilityLabel ?? (typeof children === 'string' ? children : undefined)}
-      accessibilityRole="button"
-      accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
-    >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#E91E8C'} />
-      ) : (
-        <View className="flex-row items-center gap-2">
-          {icon}
-          <Text className={styles.text}>{children}</Text>
-        </View>
-      )}
-    </AnimatedPressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
+        className={`${styles.container} ${fullWidth ? 'w-full' : ''} ${isDisabled ? 'opacity-50' : ''}`}
+        accessibilityLabel={accessibilityLabel ?? (typeof children === 'string' ? children : undefined)}
+        accessibilityRole="button"
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
+      >
+        {loading ? (
+          <ActivityIndicator color={variant === 'primary' ? '#fff' : '#E91E8C'} />
+        ) : (
+          <View className="flex-row items-center gap-2">
+            {icon}
+            <Text className={styles.text}>{children}</Text>
+          </View>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }

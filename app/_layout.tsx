@@ -1,16 +1,10 @@
 import '../global.css';
-import { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { Animated, View } from 'react-native';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
 import { useAuthListener, useAuth } from '../hooks/use-auth';
 import { usePushNotifications } from '../hooks/use-push-notifications';
 
@@ -51,20 +45,15 @@ function RouteGuard() {
 }
 
 function AppContent() {
-  const opacity = useSharedValue(0);
+  const opacity = useRef(new Animated.Value(0)).current;
 
   const onLayoutReady = useCallback(async () => {
     await SplashScreen.hideAsync();
-    opacity.value = withTiming(1, { duration: 350 });
+    Animated.timing(opacity, { toValue: 1, duration: 350, useNativeDriver: true }).start();
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    flex: 1,
-  }));
-
   return (
-    <Animated.View style={animatedStyle} onLayout={onLayoutReady}>
+    <Animated.View style={{ flex: 1, opacity }} onLayout={onLayoutReady}>
       <StatusBar style="light" />
       <RouteGuard />
       <PushNotificationRegistrar />

@@ -1,12 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 export interface Capsule {
@@ -36,7 +29,7 @@ interface CapsuleCardProps {
 export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
   const isRevealed = !!capsule.revealedAt;
   const [countdown, setCountdown] = useState(getCountdown(capsule.revealAt));
-  const glowOpacity = useSharedValue(0.4);
+  const glowOpacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
     if (isRevealed) return;
@@ -48,18 +41,13 @@ export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
 
   useEffect(() => {
     if (isRevealed) return;
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1500 }),
-        withTiming(0.4, { duration: 1500 })
-      ),
-      -1
-    );
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowOpacity, { toValue: 1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(glowOpacity, { toValue: 0.4, duration: 1500, useNativeDriver: true }),
+      ])
+    ).start();
   }, [isRevealed]);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: isRevealed ? 1 : glowOpacity.value,
-  }));
 
   return (
     <View
@@ -77,7 +65,7 @@ export function CapsuleCard({ capsule, onReveal }: CapsuleCardProps) {
       <View className="p-4 gap-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <Animated.View style={glowStyle}>
+            <Animated.View style={{ opacity: isRevealed ? 1 : glowOpacity }}>
               <Feather
                 name={isRevealed ? 'unlock' : 'lock'}
                 size={18}

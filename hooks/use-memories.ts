@@ -28,14 +28,15 @@ export function useMemories() {
       photoUri,
       ...data
     }: Omit<MemoryInsert, 'couple_id' | 'creator_id' | 'photo_url'> & { photoUri?: string }) => {
+      if (!coupleId || !user) throw new Error('Sem casal vinculado');
       let photo_url: string | null = null;
       if (photoUri) {
-        photo_url = await uploadMemoryPhoto(coupleId!, user!.id, photoUri);
+        photo_url = await uploadMemoryPhoto(coupleId, user.id, photoUri);
       }
       return createMemory({
         ...data,
-        couple_id: coupleId!,
-        creator_id: user!.id,
+        couple_id: coupleId,
+        creator_id: user.id,
         photo_url,
       });
     },

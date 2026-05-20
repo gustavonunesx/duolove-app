@@ -1,13 +1,5 @@
-import { useEffect } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-  withSequence,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,34 +13,26 @@ const FEATURES = [
 
 export default function PremiumSuccessScreen() {
   const queryClient = useQueryClient();
-  const scale = useSharedValue(0);
-  const opacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(20);
-
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-    transform: [{ translateY: contentTranslateY.value }],
-  }));
+  const scale = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ['subscription'] });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-    scale.value = withSequence(
-      withSpring(1.15, { damping: 8, stiffness: 200 }),
-      withSpring(1, { damping: 12, stiffness: 200 })
-    );
-    opacity.value = withTiming(1, { duration: 350 });
+    Animated.sequence([
+      Animated.spring(scale, { toValue: 1.15, damping: 8, stiffness: 200, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, damping: 12, stiffness: 200, useNativeDriver: true }),
+    ]).start();
+    Animated.timing(opacity, { toValue: 1, duration: 350, useNativeDriver: true }).start();
 
-    contentOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
-    contentTranslateY.value = withDelay(300, withSpring(0, { damping: 18, stiffness: 160 }));
+    Animated.parallel([
+      Animated.timing(contentOpacity, { toValue: 1, duration: 400, delay: 300, useNativeDriver: true }),
+      Animated.spring(contentTranslateY, { toValue: 0, damping: 18, stiffness: 160, delay: 300, useNativeDriver: true }),
+    ]).start();
   }, []);
 
   return (
@@ -57,13 +41,16 @@ export default function PremiumSuccessScreen() {
       accessibilityLabel="Assinatura premium ativada com sucesso"
     >
       <View className="items-center gap-6 w-full">
-        <Animated.View style={iconStyle}>
+        <Animated.View style={{ transform: [{ scale }], opacity }}>
           <View className="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary items-center justify-center">
             <Feather name="star" size={44} color="#E91E8C" />
           </View>
         </Animated.View>
 
-        <Animated.View style={contentStyle} className="items-center gap-6 w-full">
+        <Animated.View
+          style={{ opacity: contentOpacity, transform: [{ translateY: contentTranslateY }] }}
+          className="items-center gap-6 w-full"
+        >
           <View className="items-center gap-2">
             <Text className="text-text-primary text-3xl font-bold text-center" accessibilityRole="header">
               Bem-vindos ao Premium! 🎉

@@ -1,11 +1,5 @@
-import { useEffect } from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { CalendarEvent } from './event-card';
 
@@ -31,24 +25,20 @@ interface EventDetailSheetProps {
 }
 
 export function EventDetailSheet({ event, visible, onClose, onDelete }: EventDetailSheetProps) {
-  const slideAnim = useSharedValue(500);
-  const backdropOpacity = useSharedValue(0);
-
-  const slideStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideAnim.value }],
-  }));
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
+  const slideAnim = useRef(new Animated.Value(500)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
-      backdropOpacity.value = withTiming(1, { duration: 200 });
+      Animated.parallel([
+        Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
     } else {
-      slideAnim.value = withTiming(500, { duration: 250 });
-      backdropOpacity.value = withTiming(0, { duration: 200 });
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 500, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
     }
   }, [visible]);
 
@@ -56,11 +46,11 @@ export function EventDetailSheet({ event, visible, onClose, onDelete }: EventDet
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
-      <Animated.View className="flex-1 bg-black/60 justify-end" style={backdropStyle}>
+      <Animated.View className="flex-1 bg-black/60 justify-end" style={{ opacity: backdropOpacity }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={slideStyle}
+          style={{ transform: [{ translateY: slideAnim }] }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />

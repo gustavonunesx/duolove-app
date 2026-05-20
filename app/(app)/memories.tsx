@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -13,12 +14,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { Memory, MemoryCard, MemoryGridCard, MemoryTag } from '../../components/memories/memory-card';
 import { MemoryLightbox } from '../../components/memories/memory-lightbox';
@@ -70,29 +65,24 @@ function MemoryFormSheet({
   onSave: (data: { title: string; description?: string; date: string; tags: MemoryTag[] }) => Promise<void>;
   isSaving: boolean;
 }) {
-  const slideAnim = useSharedValue(700);
-  const backdropOpacity = useSharedValue(0);
+  const slideAnim = useRef(new Animated.Value(700)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<MemoryTag[]>([]);
 
-  const slideStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideAnim.value }],
-    marginTop: -700,
-  }));
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
   useEffect(() => {
     if (visible) {
-      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
-      backdropOpacity.value = withTiming(1, { duration: 200 });
+      Animated.parallel([
+        Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
     } else {
-      slideAnim.value = withTiming(700, { duration: 250 });
-      backdropOpacity.value = withTiming(0, { duration: 200 });
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 700, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
       setTitle(''); setDescription(''); setDate(''); setSelectedTags([]);
     }
   }, [visible]);
@@ -117,12 +107,12 @@ function MemoryFormSheet({
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <Animated.View className="flex-1 bg-black/60" style={backdropStyle}>
+        <Animated.View className="flex-1 bg-black/60" style={{ opacity: backdropOpacity }}>
           <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         </Animated.View>
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={slideStyle}
+          style={{ transform: [{ translateY: slideAnim }], marginTop: -700 }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />
@@ -218,27 +208,22 @@ function CapsuleFormSheet({
   onSave: (data: { message: string; revealAt: string }) => Promise<void>;
   isSaving: boolean;
 }) {
-  const slideAnim = useSharedValue(500);
-  const backdropOpacity = useSharedValue(0);
+  const slideAnim = useRef(new Animated.Value(500)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
   const [message, setMessage] = useState('');
   const [revealDate, setRevealDate] = useState('');
 
-  const slideStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: slideAnim.value }],
-    marginTop: -500,
-  }));
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
   useEffect(() => {
     if (visible) {
-      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
-      backdropOpacity.value = withTiming(1, { duration: 200 });
+      Animated.parallel([
+        Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
     } else {
-      slideAnim.value = withTiming(500, { duration: 250 });
-      backdropOpacity.value = withTiming(0, { duration: 200 });
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 500, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
       setMessage(''); setRevealDate('');
     }
   }, [visible]);
@@ -252,12 +237,12 @@ function CapsuleFormSheet({
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <Animated.View className="flex-1 bg-black/60" style={backdropStyle}>
+        <Animated.View className="flex-1 bg-black/60" style={{ opacity: backdropOpacity }}>
           <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         </Animated.View>
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={slideStyle}
+          style={{ transform: [{ translateY: slideAnim }], marginTop: -500 }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />

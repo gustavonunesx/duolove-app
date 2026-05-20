@@ -1,12 +1,5 @@
-import { useEffect } from 'react';
-import { View, ViewProps } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, View, ViewProps } from 'react-native';
 
 interface SkeletonProps extends ViewProps {
   width?: number | string;
@@ -23,21 +16,16 @@ const roundedMap = {
 };
 
 export function Skeleton({ width, height = 16, rounded = 'md', className, style, ...props }: SkeletonProps) {
-  const opacity = useSharedValue(0.3);
+  const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(0.7, { duration: 800 }),
-        withTiming(0.3, { duration: 800 })
-      ),
-      -1
-    );
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
   }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
 
   const fixedWidth = typeof width === 'number' ? width : undefined;
 
@@ -56,7 +44,7 @@ export function Skeleton({ width, height = 16, rounded = 'md', className, style,
             borderRadius: roundedMap[rounded],
           },
           fixedWidth !== undefined && { width: fixedWidth },
-          animatedStyle,
+          { opacity },
           style,
         ]}
       />

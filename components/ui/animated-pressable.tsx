@@ -1,6 +1,5 @@
-import { ReactNode } from 'react';
-import { Pressable, StyleProp, ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { ReactNode, useRef } from 'react';
+import { Animated, Pressable, StyleProp, ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 interface AnimatedPressableProps {
@@ -16,8 +15,6 @@ interface AnimatedPressableProps {
   accessibilityHint?: string;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export function AnimatedTouchable({
   onPress,
   children,
@@ -30,18 +27,14 @@ export function AnimatedTouchable({
   accessibilityRole = 'button',
   accessibilityHint,
 }: AnimatedPressableProps) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
-    scale.value = withSpring(scaleDown, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: scaleDown, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   function handlePressOut() {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, { toValue: 1, damping: 15, stiffness: 300, useNativeDriver: true }).start();
   }
 
   async function handlePress() {
@@ -58,19 +51,19 @@ export function AnimatedTouchable({
   }
 
   return (
-    <AnimatedPressable
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      style={[animatedStyle, style]}
-      className={className}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole={accessibilityRole}
-      accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: !!disabled }}
-    >
-      {children}
-    </AnimatedPressable>
+    <Animated.View style={[{ transform: [{ scale }] }, style]} className={className}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole={accessibilityRole}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: !!disabled }}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
   );
 }
