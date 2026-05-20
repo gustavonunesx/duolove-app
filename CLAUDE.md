@@ -159,14 +159,22 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ✅ Concluída |
 | M12 | `feat/polish` | Animações, acessibilidade, performance | ✅ Concluída |
 | M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ✅ Concluída |
+| M14 | `feat/m14-new-features` | Duo AI, Quiz Linguagens do Amor, Produtos Afiliados, Drawer | ⬜ Próxima |
 
 ---
 
 ## Variáveis de Ambiente
 
 ```env
+# Cliente (Expo — prefixo EXPO_PUBLIC_)
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+
+# Supabase Edge Functions (secrets — nunca no cliente)
+# supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+# supabase secrets set STRIPE_SECRET_KEY=sk_live_...
+# supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 ---

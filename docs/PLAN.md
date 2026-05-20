@@ -434,6 +434,164 @@ chore(deploy): configure EAS build and submit to App Store and Google Play
 
 ---
 
+## M14 — Novas Features (IA, Quiz, Produtos, Drawer)
+
+**Branch:** `feat/m14-new-features`
+**Objetivo:** Expandir o produto com IA conselheira ("Duo"), quiz de linguagens do amor, produtos com afiliados e redesign de navegação (tab bar → drawer lateral).
+
+### Decisões já tomadas
+- Nome da IA: **Duo**
+- Duo incluída no **plano Premium atual (R$19,90)** — sem novo tier
+- Rate limit: **50 mensagens/mês** por casal
+- Modelo: `claude-haiku-4-5-20251001` (custo ~R$0,05–0,15/usuário/mês)
+- Chat do casal **removido** — substituído pelo chat com Duo
+- Navegação: bottom tab bar **substituída por drawer lateral**
+- Produtos: acessível para free e premium (fonte de receita de afiliados)
+- Quiz de linguagens do amor: **Premium only**
+
+### Entregas
+
+#### Navegação — Drawer Lateral
+- [ ] Instalar `@react-navigation/drawer`
+- [ ] Reescrever `app/(app)/_layout.tsx`: Tabs → Drawer
+- [ ] Criar `components/shared/drawer-content.tsx` (avatar, nome do casal, menu com ícones, badge Premium)
+- [ ] Telas no drawer: Início, Calendário, Duo, Memórias, Produtos, Linguagens do Amor, Configurações
+
+#### Duo — AI Chat
+- [ ] Adicionar tabelas ao `supabase/schema.sql`: `ai_messages`, `ai_usage` (com RLS)
+- [ ] Criar `supabase/functions/ai-chat/index.ts` (Edge Function → Claude API)
+  - Auth + verificação Premium + rate limit
+  - System prompt com contexto do casal (start_date, 3 próximos eventos, tema)
+  - Janela deslizante: últimas 15 mensagens no contexto
+  - Max 400 tokens de resposta
+  - Persistir msgs + incrementar contador mensal
+- [ ] Criar `lib/supabase/ai-chat.ts` (`getAiMessages`, `sendAiMessage`)
+- [ ] Criar `hooks/use-ai-chat.ts` (React Query + contador de msgs restantes)
+- [ ] Reescrever `app/(app)/chat.tsx`: UI do Duo (bolhas diferenciadas, avatar "D", contador mensal)
+  - Free: PremiumGate cobrindo a tela
+  - Limite atingido: banner com data de renovação
+
+#### Quiz — 5 Linguagens do Amor
+- [ ] Adicionar tabela `love_language_results` ao `supabase/schema.sql` (com RLS)
+- [ ] Criar `lib/supabase/love-languages.ts` (`getLoveLanguageResult`, `saveLoveLanguageResult`)
+- [ ] Criar `hooks/use-love-languages.ts` (React Query)
+- [ ] Criar `app/(app)/love-languages.tsx`:
+  - Tela intro: explicação das 5 linguagens + botão "Começar"
+  - 15 perguntas de escolha forçada (A ou B), uma por vez com animação de slide
+  - Barra de progresso (1/15 → 15/15)
+  - Tela de resultado: linguagem primária + secundária, barra de scores, dicas práticas
+  - Se parceiro já fez: seção "Como vocês se complementam"
+  - Free: PremiumGate cobrindo a tela inteira
+
+#### Produtos Sugeridos (Afiliados)
+- [ ] Adicionar tabela `products` ao `supabase/schema.sql` (leitura pública, gerenciada via Supabase Dashboard)
+- [ ] Criar `lib/supabase/products.ts` (`getProducts`, `getProductsForOccasion`)
+- [ ] Criar `hooks/use-products.ts` (React Query com filtro por evento próximo ≤ 30 dias)
+- [ ] Criar `app/(app)/products.tsx`:
+  - Banner de data importante próxima (se houver evento em ≤ 30 dias)
+  - Seção "Perfeito para {evento}" + "Para qualquer momento"
+  - Cards: imagem, nome, faixa de preço, botão "Ver produto" (`Linking.openURL`)
+  - Acessível para free e premium
+
+### Schema SQL — 4 novas tabelas
+
+```sql
+-- ai_messages
+create table public.ai_messages (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  role text check (role in ('user', 'assistant')) not null,
+  content text not null,
+  created_at timestamptz default now() not null
+);
+alter table public.ai_messages enable row level security;
+create policy "ai_messages: select own" on public.ai_messages
+  for select using (user_id = auth.uid());
+create policy "ai_messages: insert own" on public.ai_messages
+  for insert with check (user_id = auth.uid() and couple_id = get_user_couple_id());
+
+-- ai_usage (rate limit mensal)
+create table public.ai_usage (
+  id uuid default uuid_generate_v4() primary key,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  month text not null,
+  message_count integer default 0,
+  unique (couple_id, month)
+);
+alter table public.ai_usage enable row level security;
+create policy "ai_usage: select own" on public.ai_usage
+  for select using (couple_id = get_user_couple_id());
+
+-- love_language_results
+create table public.love_language_results (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  primary_language text not null,
+  secondary_language text,
+  scores jsonb not null,
+  created_at timestamptz default now() not null,
+  unique (user_id)
+);
+alter table public.love_language_results enable row level security;
+create policy "love_languages: select couple" on public.love_language_results
+  for select using (couple_id = get_user_couple_id());
+create policy "love_languages: insert own" on public.love_language_results
+  for insert with check (user_id = auth.uid());
+create policy "love_languages: update own" on public.love_language_results
+  for update using (user_id = auth.uid());
+
+-- products (afiliados — gerenciado via Supabase Dashboard)
+create table public.products (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  description text,
+  image_url text,
+  affiliate_url text not null,
+  price_range text,
+  category text,
+  occasion text[],
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+alter table public.products enable row level security;
+create policy "products: select all" on public.products
+  for select using (is_active = true);
+```
+
+### Quiz — 15 perguntas (referência de implementação)
+
+Cada pergunta tem 2 opções rotuladas com a linguagem correspondente:
+`words` | `quality` | `acts` | `gifts` | `touch`
+
+| # | Opção A | Linguagem A | Opção B | Linguagem B |
+|---|---|---|---|---|
+| 1 | Me diz que me ama e me elogia | words | Me ajuda em tarefas sem eu pedir | acts |
+| 2 | Passamos tempo juntos sem distração | quality | Me abraça e fica pertinho | touch |
+| 3 | Receber um presente pensado | gifts | Ouvir "estou orgulhoso(a) de você" | words |
+| 4 | Fica no celular enquanto estamos juntos (negativo) | quality | Não recebe minha ajuda quando precisa (negativo) | acts |
+| 5 | Um abraço longo sem motivo | touch | Um bilhetinho ou mensagem carinhosa | words |
+| 6 | Lembra de data especial com algo simbólico | gifts | Reserva tempo só pra nós | quality |
+| 7 | Resolve algo que me preocupava | acts | Me dá um beijo ou abraço de surpresa | touch |
+| 8 | Palavras de encorajamento nos momentos difíceis | words | Um presente que mostra que pensou em mim | gifts |
+| 9 | Fazemos algo juntos com atenção total | quality | Há muito contato físico entre nós | touch |
+| 10 | Me surpreende com algo especial | gifts | Cuida de algo pra mim sem ser pedido | acts |
+| 11 | Me fala o quanto me ama na frente de outros | words | Me dá atenção total numa conversa | quality |
+| 12 | Um abraço quando estou estressado(a) | touch | Fez algo pra me facilitar a vida | acts |
+| 13 | Uma lembrança sem ocasião especial | gifts | Sentar e conversar por horas | quality |
+| 14 | Recebo mensagens de carinho ao longo do dia | words | Há muito toque e carinho físico | touch |
+| 15 | Cuida de algo que eu precisava resolver | acts | Me traz algo que sabe que eu gosto | gifts |
+
+**Contagem:** soma de respostas por chave. Maior = linguagem primária. Segundo maior = secundária.
+
+### Commit final
+```
+feat(m14): add Duo AI chat, love languages quiz, affiliate products and drawer navigation
+```
+
+---
+
 ## Sequência
 
 ```
@@ -446,7 +604,7 @@ M7 Backend Base ◄── M6 Memórias UI ◄───────────�
 M8 Backend Calendar ──► M9 Backend Social ──► M10 Notificações ──► M11 Premium
                                                                         │
                                                                         ▼
-                                                            M12 Polish ──► M13 Deploy
+                                                            M12 Polish ──► M13 Deploy ──► M14 Novas Features
 ```
 
 ---
