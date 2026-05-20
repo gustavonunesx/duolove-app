@@ -443,19 +443,33 @@ chore(deploy): configure EAS build and submit to App Store and Google Play
 - Nome da IA: **Duo**
 - Duo incluída no **plano Premium atual (R$19,90)** — sem novo tier
 - Rate limit: **50 mensagens/mês** por casal
-- Modelo: `claude-haiku-4-5-20251001` (custo ~R$0,05–0,15/usuário/mês)
+- Modelo: `gpt-4o-mini` via OpenAI API (trocado de Claude Haiku para aproveitar créditos existentes)
 - Chat do casal **removido** — substituído pelo chat com Duo
-- Navegação: bottom tab bar **substituída por drawer lateral**
+- Navegação: bottom tab bar mantida no Expo Go (7 abas); `DrawerContent` criado mas aguarda EAS Build para ativar
 - Produtos: acessível para free e premium (fonte de receita de afiliados)
 - Quiz de linguagens do amor: **Premium only**
+- Premium check: lê tabela `subscriptions` (não `couples.plan`) — para testar sem Stripe usar SQL abaixo
+
+### Para testar Premium localmente (SQL Editor do Supabase)
+```sql
+-- Setar seu usuário como premium para testar Duo e Quiz
+insert into public.subscriptions (couple_id, plan, status)
+values (
+  (select id from public.couples
+   where user1_id = (select id from public.users where email = 'SEU_EMAIL_AQUI')),
+  'premium',
+  'active'
+)
+on conflict (couple_id) do update set plan = 'premium', status = 'active';
+```
 
 ### Entregas
 
 #### Navegação — Drawer Lateral
 - [x] Instalar `@react-navigation/drawer`
-- [x] Reescrever `app/(app)/_layout.tsx`: Tabs → Drawer
 - [x] Criar `components/shared/drawer-content.tsx` (avatar, nome do casal, menu com ícones, badge Premium)
-- [x] Telas no drawer: Início, Calendário, Duo, Memórias, Produtos, Linguagens do Amor, Configurações
+- [x] `app/(app)/_layout.tsx` usa Tabs no Expo Go (7 abas: Início, Calendário, Duo, Memórias, Produtos, Amor, Config)
+- [ ] Ativar Drawer substituindo Tabs após próximo EAS Build (código já pronto em `drawer-content.tsx`)
 
 #### Duo — AI Chat
 - [x] Adicionar tabelas ao `supabase/schema.sql`: `ai_messages`, `ai_usage` (com RLS)

@@ -42,11 +42,13 @@ duolove-app/
 │   │   ├── forgot-password.tsx
 │   │   └── invite.tsx
 │   ├── (app)/                  # Telas autenticadas (com tab bar)
-│   │   ├── _layout.tsx         # Tab navigator
+│   │   ├── _layout.tsx         # Tab navigator (7 abas; Drawer pronto em drawer-content.tsx para EAS Build)
 │   │   ├── dashboard.tsx
 │   │   ├── calendar.tsx
-│   │   ├── chat.tsx
+│   │   ├── chat.tsx            # Duo AI (Premium only, gpt-4o-mini via Edge Function)
 │   │   ├── memories.tsx
+│   │   ├── products.tsx        # Produtos afiliados (free + premium)
+│   │   ├── love-languages.tsx  # Quiz 5 linguagens do amor (Premium only)
 │   │   └── settings.tsx
 │   └── onboarding/             # Fluxo de onboarding (fora das tabs)
 │       ├── _layout.tsx
@@ -124,9 +126,22 @@ O desenvolvimento M2–M6 usa **Expo Go** para preview. Expo Go tem limitações
 ### Versões fixadas (não alterar sem testar no Expo Go)
 | Pacote | Versão | Motivo |
 |---|---|---|
-| `react-native-reanimated` | `~3.16.7` | v4 quebra no Expo Go |
+| `react-native-reanimated` | `~3.16.7` | v4 quebra no Expo Go (requer react-native-worklets) |
 | `tailwindcss` | `^3.x` | NativeWind v4 exige Tailwind v3 |
 | `@react-native-async-storage/async-storage` | `1.23.1` | v3.x não tem módulo nativo no Expo Go |
+| `@react-navigation/drawer` | instalado | Drawer usa Reanimated internamente — só funciona em EAS Build, não no Expo Go |
+
+### Setar Premium para testes (sem Stripe)
+O `isPremium` lê da tabela `subscriptions`, não de `couples.plan`. Para testar features premium localmente:
+```sql
+insert into public.subscriptions (couple_id, plan, status)
+values (
+  (select id from public.couples
+   where user1_id = (select id from public.users where email = 'SEU_EMAIL')),
+  'premium', 'active'
+)
+on conflict (couple_id) do update set plan = 'premium', status = 'active';
+```
 
 ### Prisma — decisão de arquitetura (M7)
 Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funciona em React Native/Expo Go. O padrão correto para apps mobile com Supabase é usar o **Supabase SDK diretamente** (`@supabase/supabase-js`). Schema e migrations são gerenciados via SQL no Supabase Dashboard (`supabase/schema.sql`).
@@ -172,7 +187,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 
 # Supabase Edge Functions (secrets — nunca no cliente)
-# supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+# supabase secrets set OPENAI_API_KEY=sk-...       ← usado pela Edge Function ai-chat (Duo)
 # supabase secrets set STRIPE_SECRET_KEY=sk_live_...
 # supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 ```
