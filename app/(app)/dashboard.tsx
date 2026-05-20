@@ -3,6 +3,7 @@ import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'reac
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
+import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
 import { useAuth } from '../../hooks/use-auth';
 import { useCouple } from '../../hooks/use-couple';
 import { useEvents } from '../../hooks/use-events';
@@ -111,14 +112,7 @@ function AppHeader({ userName, partnerName }: { userName: string; partnerName: s
           )}
         </View>
       </View>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        className="w-9 h-9 rounded-full bg-card border border-white/10 items-center justify-center"
-        accessibilityLabel="Notificações"
-        accessibilityRole="button"
-      >
-        <Feather name="bell" size={18} color="#8B8B9E" />
-      </TouchableOpacity>
+      <DrawerMenuButton />
     </View>
   );
 }

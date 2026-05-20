@@ -332,3 +332,71 @@ create policy "memories storage: delete"
     and auth.uid() is not null
     and (storage.foldername(name))[1] = (get_user_couple_id())::text
   );
+
+-- =============================================
+-- M14 — NOVAS TABELAS
+-- =============================================
+
+-- ai_messages: histórico de conversa com o Duo
+create table if not exists public.ai_messages (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  role text check (role in ('user', 'assistant')) not null,
+  content text not null,
+  created_at timestamptz default now() not null
+);
+alter table public.ai_messages enable row level security;
+create policy "ai_messages: select own" on public.ai_messages
+  for select using (user_id = auth.uid());
+create policy "ai_messages: insert own" on public.ai_messages
+  for insert with check (user_id = auth.uid() and couple_id = get_user_couple_id());
+create index if not exists ai_messages_couple_id_created_at_idx on public.ai_messages(couple_id, created_at desc);
+
+-- ai_usage: contador mensal de mensagens por casal (rate limit)
+create table if not exists public.ai_usage (
+  id uuid default uuid_generate_v4() primary key,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  month text not null,
+  message_count integer default 0,
+  unique (couple_id, month)
+);
+alter table public.ai_usage enable row level security;
+create policy "ai_usage: select own" on public.ai_usage
+  for select using (couple_id = get_user_couple_id());
+
+-- love_language_results: resultado do quiz por usuário
+create table if not exists public.love_language_results (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  couple_id uuid references public.couples(id) on delete cascade not null,
+  primary_language text not null,
+  secondary_language text,
+  scores jsonb not null,
+  created_at timestamptz default now() not null,
+  unique (user_id)
+);
+alter table public.love_language_results enable row level security;
+create policy "love_languages: select couple" on public.love_language_results
+  for select using (couple_id = get_user_couple_id());
+create policy "love_languages: insert own" on public.love_language_results
+  for insert with check (user_id = auth.uid());
+create policy "love_languages: update own" on public.love_language_results
+  for update using (user_id = auth.uid());
+
+-- products: catálogo de produtos afiliados (gerenciado via Supabase Dashboard)
+create table if not exists public.products (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  description text,
+  image_url text,
+  affiliate_url text not null,
+  price_range text,
+  category text,
+  occasion text[],
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+alter table public.products enable row level security;
+create policy "products: select all" on public.products
+  for select using (is_active = true);

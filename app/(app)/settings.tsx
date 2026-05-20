@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
 import { GlassCard } from '../../components/ui/glass-card';
 import { useAuth } from '../../hooks/use-auth';
 import { usePushNotifications } from '../../hooks/use-push-notifications';
@@ -222,7 +223,8 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-surface">
-      <View className="px-5 pt-14 pb-4">
+      <View className="px-5 pt-14 pb-4 flex-row items-center gap-3">
+        <DrawerMenuButton />
         <Text className="text-text-primary text-2xl font-bold">Configurações</Text>
       </View>
 

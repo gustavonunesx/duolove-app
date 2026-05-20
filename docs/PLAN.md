@@ -452,30 +452,30 @@ chore(deploy): configure EAS build and submit to App Store and Google Play
 ### Entregas
 
 #### Navegação — Drawer Lateral
-- [ ] Instalar `@react-navigation/drawer`
-- [ ] Reescrever `app/(app)/_layout.tsx`: Tabs → Drawer
-- [ ] Criar `components/shared/drawer-content.tsx` (avatar, nome do casal, menu com ícones, badge Premium)
-- [ ] Telas no drawer: Início, Calendário, Duo, Memórias, Produtos, Linguagens do Amor, Configurações
+- [x] Instalar `@react-navigation/drawer`
+- [x] Reescrever `app/(app)/_layout.tsx`: Tabs → Drawer
+- [x] Criar `components/shared/drawer-content.tsx` (avatar, nome do casal, menu com ícones, badge Premium)
+- [x] Telas no drawer: Início, Calendário, Duo, Memórias, Produtos, Linguagens do Amor, Configurações
 
 #### Duo — AI Chat
-- [ ] Adicionar tabelas ao `supabase/schema.sql`: `ai_messages`, `ai_usage` (com RLS)
-- [ ] Criar `supabase/functions/ai-chat/index.ts` (Edge Function → Claude API)
+- [x] Adicionar tabelas ao `supabase/schema.sql`: `ai_messages`, `ai_usage` (com RLS)
+- [x] Criar `supabase/functions/ai-chat/index.ts` (Edge Function → Claude API)
   - Auth + verificação Premium + rate limit
   - System prompt com contexto do casal (start_date, 3 próximos eventos, tema)
   - Janela deslizante: últimas 15 mensagens no contexto
   - Max 400 tokens de resposta
   - Persistir msgs + incrementar contador mensal
-- [ ] Criar `lib/supabase/ai-chat.ts` (`getAiMessages`, `sendAiMessage`)
-- [ ] Criar `hooks/use-ai-chat.ts` (React Query + contador de msgs restantes)
-- [ ] Reescrever `app/(app)/chat.tsx`: UI do Duo (bolhas diferenciadas, avatar "D", contador mensal)
+- [x] Criar `lib/supabase/ai-chat.ts` (`getAiMessages`, `sendAiMessage`)
+- [x] Criar `hooks/use-ai-chat.ts` (React Query + contador de msgs restantes)
+- [x] Reescrever `app/(app)/chat.tsx`: UI do Duo (bolhas diferenciadas, avatar "D", contador mensal)
   - Free: PremiumGate cobrindo a tela
   - Limite atingido: banner com data de renovação
 
 #### Quiz — 5 Linguagens do Amor
-- [ ] Adicionar tabela `love_language_results` ao `supabase/schema.sql` (com RLS)
-- [ ] Criar `lib/supabase/love-languages.ts` (`getLoveLanguageResult`, `saveLoveLanguageResult`)
-- [ ] Criar `hooks/use-love-languages.ts` (React Query)
-- [ ] Criar `app/(app)/love-languages.tsx`:
+- [x] Adicionar tabela `love_language_results` ao `supabase/schema.sql` (com RLS)
+- [x] Criar `lib/supabase/love-languages.ts` (`getLoveLanguageResult`, `saveLoveLanguageResult`)
+- [x] Criar `hooks/use-love-languages.ts` (React Query)
+- [x] Criar `app/(app)/love-languages.tsx`:
   - Tela intro: explicação das 5 linguagens + botão "Começar"
   - 15 perguntas de escolha forçada (A ou B), uma por vez com animação de slide
   - Barra de progresso (1/15 → 15/15)
@@ -484,10 +484,10 @@ chore(deploy): configure EAS build and submit to App Store and Google Play
   - Free: PremiumGate cobrindo a tela inteira
 
 #### Produtos Sugeridos (Afiliados)
-- [ ] Adicionar tabela `products` ao `supabase/schema.sql` (leitura pública, gerenciada via Supabase Dashboard)
-- [ ] Criar `lib/supabase/products.ts` (`getProducts`, `getProductsForOccasion`)
-- [ ] Criar `hooks/use-products.ts` (React Query com filtro por evento próximo ≤ 30 dias)
-- [ ] Criar `app/(app)/products.tsx`:
+- [x] Adicionar tabela `products` ao `supabase/schema.sql` (leitura pública, gerenciada via Supabase Dashboard)
+- [x] Criar `lib/supabase/products.ts` (`getProducts`, `getProductsForOccasion`)
+- [x] Criar `hooks/use-products.ts` (React Query com filtro por evento próximo ≤ 30 dias)
+- [x] Criar `app/(app)/products.tsx`:
   - Banner de data importante próxima (se houver evento em ≤ 30 dias)
   - Seção "Perfeito para {evento}" + "Para qualquer momento"
   - Cards: imagem, nome, faixa de preço, botão "Ver produto" (`Linking.openURL`)

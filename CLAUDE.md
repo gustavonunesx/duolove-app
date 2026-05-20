@@ -159,7 +159,7 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M11 | `feat/premium-stripe` | Planos, Stripe, gating de features | ✅ Concluída |
 | M12 | `feat/polish` | Animações, acessibilidade, performance | ✅ Concluída |
 | M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ✅ Concluída |
-| M14 | `feat/m14-new-features` | Duo AI, Quiz Linguagens do Amor, Produtos Afiliados, Drawer | ⬜ Próxima |
+| M14 | `feat/m14-new-features` | Duo AI, Quiz Linguagens do Amor, Produtos Afiliados, Drawer | ✅ Concluída |
 
 ---
 
