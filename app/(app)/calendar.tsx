@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
+import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
 import { DayCell } from '../../components/calendar/day-cell';
 import { EventCard, CalendarEvent } from '../../components/calendar/event-card';
 import { EventFormSheet } from '../../components/calendar/event-form-sheet';
@@ -397,7 +398,8 @@ export default function CalendarScreen() {
     <View className="flex-1 bg-surface">
       {/* Header */}
       <View className="px-5 pt-14 pb-3 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center gap-3">
+          <DrawerMenuButton />
           <Text className="text-text-primary text-2xl font-bold" accessibilityRole="header">Calendário</Text>
         </View>
         <TouchableOpacity

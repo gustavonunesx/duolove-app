@@ -48,8 +48,10 @@ export function useEvents() {
   }, [coupleId]);
 
   const addEvent = useMutation({
-    mutationFn: (event: Omit<EventInsert, 'couple_id' | 'creator_id'>) =>
-      createEvent({ ...event, couple_id: coupleId!, creator_id: user!.id }),
+    mutationFn: (event: Omit<EventInsert, 'couple_id' | 'creator_id'>) => {
+      if (!coupleId || !user) throw new Error('Sem casal vinculado');
+      return createEvent({ ...event, couple_id: coupleId, creator_id: user.id });
+    },
     onSuccess: (newEvent) => {
       queryClient.setQueryData<EventRow[]>(queryKey, (prev = []) => [...prev, newEvent]);
     },

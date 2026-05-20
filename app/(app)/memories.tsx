@@ -15,12 +15,14 @@ import {
 } from 'react-native';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
+import { DrawerMenuButton } from '../../components/shared/drawer-menu-button';
 import { Memory, MemoryCard, MemoryGridCard, MemoryTag } from '../../components/memories/memory-card';
 import { MemoryLightbox } from '../../components/memories/memory-lightbox';
 import { Capsule, CapsuleCard } from '../../components/memories/capsule-card';
 import { useMemories } from '../../hooks/use-memories';
 import { useCapsules } from '../../hooks/use-capsules';
 import { useAuth } from '../../hooks/use-auth';
+import { useCouple } from '../../hooks/use-couple';
 import { MemoryRow } from '../../lib/supabase/memories';
 import { CapsuleRow } from '../../lib/supabase/capsules';
 
@@ -300,6 +302,7 @@ type FilterTag = 'todos' | MemoryTag;
 
 export default function MemoriesScreen() {
   const { user } = useAuth();
+  const { coupleId, isLoading: coupleLoading } = useCouple();
   const { memories: rawMemories, isLoading: memoriesLoading, addMemory, isAdding: isAddingMemory } = useMemories();
   const { capsules: rawCapsules, isLoading: capsulesLoading, addCapsule, isAdding: isAddingCapsule, revealCapsule } = useCapsules();
 
@@ -328,12 +331,26 @@ export default function MemoriesScreen() {
     await revealCapsule(id);
   }
 
+  if (!coupleLoading && !coupleId) {
+    return (
+      <View className="flex-1 bg-surface items-center justify-center gap-4 px-8">
+        <Feather name="users" size={48} color="#8B8B9E" />
+        <Text className="text-text-muted text-sm text-center">
+          Convide seu parceiro(a) para criar memórias juntos ✨{'\n'}Vá em Configurações para gerar um convite.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-surface">
       {/* Header */}
       <View className="px-5 pt-14 pb-3">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-text-primary text-2xl font-bold">Memórias</Text>
+          <View className="flex-row items-center gap-3">
+            <DrawerMenuButton />
+            <Text className="text-text-primary text-2xl font-bold">Memórias</Text>
+          </View>
           <TouchableOpacity
             onPress={() => setMemoryFormVisible(true)}
             activeOpacity={0.8}

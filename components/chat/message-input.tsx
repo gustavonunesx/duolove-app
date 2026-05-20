@@ -4,32 +4,35 @@ import { Feather } from '@expo/vector-icons';
 
 interface MessageInputProps {
   onSend: (text: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
-export function MessageInput({ onSend }: MessageInputProps) {
+export function MessageInput({ onSend, disabled = false, placeholder = 'Mensagem...' }: MessageInputProps) {
   const [text, setText] = useState('');
   const inputRef = useRef<TextInput>(null);
 
   function handleSend() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || disabled) return;
     onSend(trimmed);
     setText('');
   }
 
-  const canSend = text.trim().length > 0;
+  const canSend = text.trim().length > 0 && !disabled;
 
   return (
     <View className="flex-row items-end gap-2 px-4 py-3 bg-surface border-t border-white/10">
-      <View className="flex-1 bg-card border border-white/10 rounded-2xl px-4 py-2.5 min-h-[44px] justify-center">
+      <View className={`flex-1 bg-card border rounded-2xl px-4 py-2.5 min-h-[44px] justify-center ${disabled ? 'border-white/5 opacity-50' : 'border-white/10'}`}>
         <TextInput
           ref={inputRef}
           value={text}
           onChangeText={setText}
-          placeholder="Mensagem..."
+          placeholder={placeholder}
           placeholderTextColor="#8B8B9E"
           multiline
           maxLength={1000}
+          editable={!disabled}
           className="text-text-primary text-sm"
           style={{ maxHeight: 100 }}
           onSubmitEditing={handleSend}
