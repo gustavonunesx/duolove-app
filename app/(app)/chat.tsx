@@ -94,10 +94,22 @@ function TypingIndicator() {
 
 function GeneralChat() {
   const { user } = useAuth();
+  const { coupleId, isLoading: coupleLoading } = useCouple();
   const { messages: rawMessages, reactions, isLoading, sendMessage, toggleReaction } = useMessages();
   const listRef = useRef<FlatList>(null);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [reactionPickerVisible, setReactionPickerVisible] = useState(false);
+
+  if (!coupleLoading && !coupleId) {
+    return (
+      <View className="flex-1 items-center justify-center gap-4 px-8">
+        <Feather name="users" size={48} color="#8B8B9E" />
+        <Text className="text-text-muted text-sm text-center">
+          Convide seu parceiro(a) para começar a conversar 💌{'\n'}Vá em Configurações para gerar um convite.
+        </Text>
+      </View>
+    );
+  }
 
   const messages: Message[] = rawMessages.map((row) =>
     buildMessage(row, user!.id, reactions)

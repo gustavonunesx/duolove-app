@@ -81,19 +81,20 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        style={{ flex: 1, justifyContent: 'flex-end' }}
       >
-        <Animated.View
-          className="flex-1 bg-black/60"
-          style={{ opacity: backdropOpacity }}
+        <Pressable
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          onPress={onClose}
+          accessibilityLabel="Fechar"
         >
-          <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
-        </Animated.View>
+          <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', opacity: backdropOpacity }} />
+        </Pressable>
 
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={{ transform: [{ translateY: slideAnim }], marginTop: -600 }}
+          style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%' }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />
