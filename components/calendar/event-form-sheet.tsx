@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,6 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { CalendarEvent } from './event-card';
 
@@ -31,8 +36,8 @@ interface EventFormSheetProps {
 }
 
 export function EventFormSheet({ visible, selectedDate, onClose, onSave }: EventFormSheetProps) {
-  const slideAnim = useRef(new Animated.Value(600)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const slideAnim = useSharedValue(600);
+  const backdropOpacity = useSharedValue(0);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -42,17 +47,22 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
+  const slideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: slideAnim.value }],
+    marginTop: -600,
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0 }),
-        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
+      slideAnim.value = withSpring(0, { damping: 20, stiffness: 200 });
+      backdropOpacity.value = withTiming(1, { duration: 200 });
     } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 600, duration: 250, useNativeDriver: true }),
-        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
+      slideAnim.value = withTiming(600, { duration: 250 });
+      backdropOpacity.value = withTiming(0, { duration: 200 });
       setTitle('');
       setDescription('');
       setType('casal');
@@ -79,30 +89,29 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
   }
 
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <Animated.View
           className="flex-1 bg-black/60"
-          style={{ opacity: backdropOpacity }}
+          style={backdropStyle}
         >
-          <Pressable className="flex-1" onPress={onClose} />
+          <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Fechar" />
         </Animated.View>
 
         <Animated.View
           className="bg-card rounded-t-3xl border-t border-white/10"
-          style={{ transform: [{ translateY: slideAnim }], marginTop: -600 }}
+          style={slideStyle}
         >
-          {/* Handle */}
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 bg-white/20 rounded-full" />
           </View>
 
           <View className="flex-row items-center justify-between px-5 py-3">
-            <Text className="text-text-primary text-lg font-bold">Novo evento</Text>
-            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+            <Text className="text-text-primary text-lg font-bold" accessibilityRole="header">Novo evento</Text>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7} accessibilityLabel="Fechar" accessibilityRole="button">
               <Feather name="x" size={22} color="#8B8B9E" />
             </TouchableOpacity>
           </View>
@@ -113,16 +122,15 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Title */}
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="Título do evento"
               placeholderTextColor="#8B8B9E"
               className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-base mb-3"
+              accessibilityLabel="Título do evento"
             />
 
-            {/* Description */}
             <TextInput
               value={description}
               onChangeText={setDescription}
@@ -133,9 +141,9 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
               textAlignVertical="top"
               className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-4"
               style={{ height: 80 }}
+              accessibilityLabel="Descrição do evento"
             />
 
-            {/* Date & time */}
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Data e horário</Text>
             <View className="flex-row gap-3 mb-4">
               <View className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3">
@@ -148,6 +156,7 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
                 placeholder="Início"
                 placeholderTextColor="#8B8B9E"
                 className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm"
+                accessibilityLabel="Horário de início"
               />
               <TextInput
                 value={endTime}
@@ -155,10 +164,10 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
                 placeholder="Fim"
                 placeholderTextColor="#8B8B9E"
                 className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm"
+                accessibilityLabel="Horário de fim"
               />
             </View>
 
-            {/* Type */}
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Tipo</Text>
             <View className="flex-row gap-2 mb-4">
               {EVENT_TYPES.map((t) => (
@@ -169,6 +178,9 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
                   className={`flex-1 items-center py-2.5 rounded-2xl border gap-1 ${
                     type === t.value ? 'bg-primary/20 border-primary' : 'bg-surface border-white/10'
                   }`}
+                  accessibilityLabel={`Tipo ${t.label}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: type === t.value }}
                 >
                   <Feather name={t.icon} size={16} color={type === t.value ? '#E91E8C' : '#8B8B9E'} />
                   <Text className={`text-xs font-medium ${type === t.value ? 'text-primary' : 'text-text-muted'}`}>
@@ -178,7 +190,6 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
               ))}
             </View>
 
-            {/* Color */}
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Cor</Text>
             <View className="flex-row gap-3 mb-4">
               {COLOR_OPTIONS.map((c) => (
@@ -188,13 +199,15 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
                   activeOpacity={0.8}
                   className="w-9 h-9 rounded-full items-center justify-center"
                   style={{ backgroundColor: c }}
+                  accessibilityLabel={`Cor ${c}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: color === c }}
                 >
                   {color === c && <Feather name="check" size={16} color="#fff" />}
                 </TouchableOpacity>
               ))}
             </View>
 
-            {/* Visibility */}
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Visibilidade</Text>
             <View className="flex-row gap-3 mb-6">
               {(['compartilhado', 'privado'] as const).map((v) => (
@@ -205,6 +218,9 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
                   className={`flex-1 flex-row items-center justify-center gap-2 py-3 rounded-2xl border ${
                     visibility === v ? 'bg-primary/20 border-primary' : 'bg-surface border-white/10'
                   }`}
+                  accessibilityLabel={v === 'compartilhado' ? 'Compartilhado com parceiro' : 'Privado'}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: visibility === v }}
                 >
                   <Feather
                     name={v === 'compartilhado' ? 'users' : 'lock'}
@@ -218,12 +234,14 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
               ))}
             </View>
 
-            {/* Save */}
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.8}
               className={`bg-primary rounded-2xl py-4 items-center ${!title.trim() ? 'opacity-40' : ''}`}
               disabled={!title.trim()}
+              accessibilityLabel="Salvar evento"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !title.trim() }}
             >
               <Text className="text-white font-semibold text-base">Salvar evento</Text>
             </TouchableOpacity>
