@@ -8,6 +8,7 @@ Site de marketing (separado): repositório `duolove-web` (Next.js).
 
 PRD completo: [docs/PRD.md](docs/PRD.md)
 Plano de milestones: [docs/PLAN.md](docs/PLAN.md)
+Matriz de teste de UI/performance: [docs/TESTING.md](docs/TESTING.md)
 
 ---
 
@@ -107,6 +108,8 @@ duolove-app/
 - Imports diretos — sem barrel exports (`index.ts`)
 - Formulários: `react-hook-form` + `zod`
 - Realtime: Supabase Realtime channels para sync de calendário e chat
+- Lazy loading de telas pesadas: a rota em `app/(app)/` é um wrapper fino com `React.lazy` + `Suspense` (fallback `components/shared/screen-fallback.tsx`); o conteúdo real fica em `components/<area>/<nome>-screen.tsx`. Aplicado em `chat.tsx` (Duo) e `love-languages.tsx`.
+- Transições de tela: configuradas via `animation` no `Stack` de cada `_layout.tsx` (slide nos fluxos, fade no auth; `premium-success` é modal slide-from-bottom).
 
 ---
 

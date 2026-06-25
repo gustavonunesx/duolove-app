@@ -12,7 +12,14 @@ export default function AuthLayout() {
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+          animation: 'fade',
+          animationDuration: 220,
+        }}
+      />
     </>
   );
 }

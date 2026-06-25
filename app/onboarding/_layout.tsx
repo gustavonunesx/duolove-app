@@ -12,7 +12,15 @@ export default function OnboardingLayout() {
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+          animation: 'slide_from_right',
+          animationDuration: 280,
+          gestureEnabled: true,
+        }}
+      />
     </>
   );
 }
