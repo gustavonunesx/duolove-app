@@ -405,6 +405,7 @@ export default function MemoriesScreen() {
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
       >
         {memoriesLoading ? (
           <View className="gap-4 mb-6">
@@ -457,6 +458,10 @@ export default function MemoriesScreen() {
               columnWrapperStyle={{ gap: 10 }}
               contentContainerStyle={{ gap: 10 }}
               scrollEnabled={false}
+              removeClippedSubviews
+              initialNumToRender={8}
+              maxToRenderPerBatch={8}
+              windowSize={5}
               renderItem={({ item }) => (
                 <MemoryGridCard memory={item} onPress={() => setSelectedMemory(item)} />
               )}

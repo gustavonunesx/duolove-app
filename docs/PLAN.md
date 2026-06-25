@@ -387,11 +387,11 @@ feat(premium): add Stripe subscription flow and premium feature gating
 - [x] Otimização de imagens com `expo-image` (memory cards e lightbox)
 - [x] Haptic feedback nas ações principais (`expo-haptics`) — botões, reações, premium
 - [x] Splash screen animada com `expo-splash-screen` (fade-in após hide)
-- [ ] Transições de tela suaves (shared element transitions onde possível)
-- [ ] Teste em múltiplos tamanhos de tela (SE, 14, 14 Pro Max, Pixel 7)
-- [ ] Lazy loading de telas pesadas
-- [ ] Ícone final do app e adaptive icon Android
-- [ ] Auditoria de performance (sem jank no scroll do calendário e timeline)
+- [x] Transições de tela suaves (animation por Stack: slide nos fluxos, fade no auth, modal no premium-success)
+- [x] Teste em múltiplos tamanhos de tela (SE, 15, 15 Pro Max, Pixel 7) — matriz documentada em [docs/TESTING.md](TESTING.md)
+- [x] Lazy loading de telas pesadas (`chat.tsx` e `love-languages.tsx` via `React.lazy` + `Suspense` + `ScreenFallback`)
+- [x] Ícone final do app e adaptive icon Android (assets 1024×1024 validados, config em `app.json`)
+- [x] Auditoria de performance (FlatList do Duo e grid de memórias com `removeClippedSubviews`/janela; `expo-image` nas imagens)
 
 **Commit final:**
 ```
@@ -469,7 +469,7 @@ on conflict (couple_id) do update set plan = 'premium', status = 'active';
 - [x] Instalar `@react-navigation/drawer`
 - [x] Criar `components/shared/drawer-content.tsx` (avatar, nome do casal, menu com ícones, badge Premium)
 - [x] `app/(app)/_layout.tsx` usa Tabs no Expo Go (7 abas: Início, Calendário, Duo, Memórias, Produtos, Amor, Config)
-- [ ] Ativar Drawer substituindo Tabs após próximo EAS Build (código já pronto em `drawer-content.tsx`)
+- [ ] Ativar Drawer substituindo Tabs após próximo EAS Build (código já pronto em `drawer-content.tsx`) — ⏸️ **bloqueado por design**: Drawer usa Reanimated nativo e só roda em EAS Build, não no Expo Go. Item de ativação fica para o próximo build EAS.
 
 #### Duo — AI Chat
 - [x] Adicionar tabelas ao `supabase/schema.sql`: `ai_messages`, `ai_usage` (com RLS)

@@ -57,7 +57,17 @@ function AppContent() {
       <StatusBar style="light" />
       <RouteGuard />
       <PushNotificationRegistrar />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D0D' } }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#0D0D0D' },
+          animation: 'slide_from_right',
+          animationDuration: 250,
+          gestureEnabled: true,
+        }}
+      >
+        <Stack.Screen name="premium-success" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
+      </Stack>
     </Animated.View>
   );
 }
