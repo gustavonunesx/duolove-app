@@ -1,3 +1,5 @@
+import { File } from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 import { supabase } from './client';
 
 export interface MemoryRow {
@@ -66,15 +68,20 @@ export async function uploadMemoryPhoto(
   userId: string,
   uri: string
 ): Promise<string> {
-  const ext = uri.split('.').pop() ?? 'jpg';
+  // Normaliza extensão (remove query/fragment de URIs do picker)
+  const rawExt = uri.split('.').pop()?.split(/[?#]/)[0]?.toLowerCase() ?? 'jpg';
+  const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+  const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
   const fileName = `${coupleId}/${userId}/${Date.now()}.${ext}`;
 
-  const response = await fetch(uri);
-  const blob = await response.blob();
+  // No React Native, fetch(uri).blob() é instável e causa "Network request failed".
+  // Padrão confiável: ler como base64 (expo-file-system) e enviar um ArrayBuffer.
+  const base64 = await new File(uri).base64();
+  const arrayBuffer = decode(base64);
 
   const { error } = await supabase.storage
     .from('memories')
-    .upload(fileName, blob, { contentType: `image/${ext}` });
+    .upload(fileName, arrayBuffer, { contentType });
   if (error) throw error;
 
   const { data } = supabase.storage.from('memories').getPublicUrl(fileName);

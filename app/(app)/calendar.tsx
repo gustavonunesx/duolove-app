@@ -7,6 +7,7 @@ import { DayCell } from '../../components/calendar/day-cell';
 import { EventCard, CalendarEvent } from '../../components/calendar/event-card';
 import { EventFormSheet } from '../../components/calendar/event-form-sheet';
 import { EventDetailSheet } from '../../components/calendar/event-detail-sheet';
+import { AppMenuButton } from '../../components/shared/app-menu';
 import { useEvents } from '../../hooks/use-events';
 import { useAuth } from '../../hooks/use-auth';
 import type { EventRow } from '../../lib/supabase/events';
@@ -398,7 +399,8 @@ export default function CalendarScreen() {
     <View className="flex-1 bg-surface">
       {/* Header */}
       <View className="px-5 pt-14 pb-3 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-2">
+          <AppMenuButton />
           <Text className="text-text-primary text-2xl font-bold" accessibilityRole="header">Calendário</Text>
         </View>
         <TouchableOpacity

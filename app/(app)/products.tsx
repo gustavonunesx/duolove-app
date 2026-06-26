@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useProducts } from '../../hooks/use-products';
 import { useEvents } from '../../hooks/use-events';
 import { Skeleton } from '../../components/ui/skeleton';
+import { AppMenuButton } from '../../components/shared/app-menu';
 
 function ProductCard({ product }: { product: { id: string; name: string; description: string | null; image_url: string | null; affiliate_url: string; price_range: string | null; category: string | null } }) {
   return (
@@ -75,7 +76,8 @@ export default function ProductsScreen() {
   return (
     <ScrollView className="flex-1 bg-surface" showsVerticalScrollIndicator={false}>
       <View className="px-5 pt-14 pb-4">
-        <View className="flex-row items-center gap-3 mb-1">
+        <View className="flex-row items-center gap-2 mb-1">
+          <AppMenuButton />
           <Text className="text-text-primary text-2xl font-bold">Produtos</Text>
         </View>
         <Text className="text-text-muted text-sm">Presentes e experiências para vocês dois</Text>

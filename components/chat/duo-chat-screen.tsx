@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import { MessageInput } from './message-input';
 import { PremiumGateScreen } from '../ui/premium-gate';
 import { Skeleton } from '../ui/skeleton';
+import { AppMenuButton } from '../shared/app-menu';
 
 import { useSubscription } from '../../hooks/use-subscription';
 import { useAiChat } from '../../hooks/use-ai-chat';
@@ -199,6 +200,7 @@ export function DuoChatScreen() {
             <Text className="text-text-muted text-xs">Assistente do casal</Text>
           </View>
         </View>
+        <AppMenuButton />
       </View>
 
       <DuoChat />

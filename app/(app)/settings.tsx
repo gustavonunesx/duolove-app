@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Switch
 import { Feather } from '@expo/vector-icons';
 
 import { GlassCard } from '../../components/ui/glass-card';
+import { AppMenuButton } from '../../components/shared/app-menu';
 import { useAuth } from '../../hooks/use-auth';
 import { usePushNotifications } from '../../hooks/use-push-notifications';
 import { useSubscription } from '../../hooks/use-subscription';
@@ -223,7 +224,8 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-surface">
-      <View className="px-5 pt-14 pb-4">
+      <View className="px-5 pt-14 pb-4 flex-row items-center gap-2">
+        <AppMenuButton />
         <Text className="text-text-primary text-2xl font-bold">Configurações</Text>
       </View>
 

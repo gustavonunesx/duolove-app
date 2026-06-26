@@ -41,6 +41,13 @@
           "merchantIdentifier": "merchant.com.duolove.app",
           "enableGooglePay": false
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O DuoLove usa sua galeria para você adicionar fotos às memórias do casal.",
+          "cameraPermission": "O DuoLove usa a câmera para você fotografar momentos e adicionar às memórias."
+        }
       ]
     ],
     "scheme": "duolove",
