@@ -13,6 +13,18 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { CalendarEvent } from './event-card';
+import { DateTimePickerModal } from '../ui/datetime-picker-modal';
+
+const WEEKDAYS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const MONTHS_LONG = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+];
+
+function formatLongDate(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return `${WEEKDAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS_LONG[d.getMonth()]}`;
+}
 
 const EVENT_TYPES: { value: CalendarEvent['type']; label: string; icon: React.ComponentProps<typeof Feather>['name'] }[] = [
   { value: 'casal', label: 'Casal', icon: 'heart' },
@@ -39,11 +51,14 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
   const [type, setType] = useState<CalendarEvent['type']>('casal');
   const [color, setColor] = useState('#E91E8C');
   const [visibility, setVisibility] = useState<CalendarEvent['visibility']>('compartilhado');
+  const [date, setDate] = useState(selectedDate ?? '');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setDate(selectedDate ?? '');
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
         Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -58,17 +73,24 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
       setType('casal');
       setColor('#E91E8C');
       setVisibility('compartilhado');
+      setDate('');
       setStartTime('');
       setEndTime('');
     }
   }, [visible]);
 
+  function handleConfirmDateTime(v: { date: string; startTime?: string; endTime?: string }) {
+    setDate(v.date);
+    setStartTime(v.startTime ?? '');
+    setEndTime(v.endTime ?? '');
+  }
+
   function handleSave() {
-    if (!title.trim()) return;
+    if (!title.trim() || !date) return;
     onSave({
       title: title.trim(),
       description: description.trim() || undefined,
-      date: selectedDate ?? '',
+      date,
       startTime: startTime || undefined,
       endTime: endTime || undefined,
       type,
@@ -77,6 +99,8 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
     });
     onClose();
   }
+
+  const canSave = !!title.trim() && !!date;
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose} accessibilityViewIsModal>
@@ -136,28 +160,26 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
             />
 
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Data e horário</Text>
-            <View className="flex-row gap-3 mb-4">
-              <View className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3">
-                <Text className="text-text-muted text-xs mb-1">Data</Text>
-                <Text className="text-text-primary text-sm font-medium">{selectedDate ?? '—'}</Text>
+
+            <TouchableOpacity
+              onPress={() => setDateTimePickerVisible(true)}
+              activeOpacity={0.7}
+              className="bg-surface border border-white/10 rounded-2xl px-4 py-3 mb-4 flex-row items-center justify-between"
+              accessibilityRole="button"
+              accessibilityLabel="Selecionar data e horário"
+            >
+              <View className="flex-1 pr-3">
+                {date ? (
+                  <Text className="text-text-primary text-sm font-medium" numberOfLines={1}>
+                    {formatLongDate(date)}
+                    {startTime ? ` · ${startTime}${endTime ? `–${endTime}` : ''}` : ''}
+                  </Text>
+                ) : (
+                  <Text className="text-text-muted text-sm">Selecionar data e horário</Text>
+                )}
               </View>
-              <TextInput
-                value={startTime}
-                onChangeText={setStartTime}
-                placeholder="Início"
-                placeholderTextColor="#8B8B9E"
-                className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm"
-                accessibilityLabel="Horário de início"
-              />
-              <TextInput
-                value={endTime}
-                onChangeText={setEndTime}
-                placeholder="Fim"
-                placeholderTextColor="#8B8B9E"
-                className="flex-1 bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm"
-                accessibilityLabel="Horário de fim"
-              />
-            </View>
+              <Feather name="calendar" size={18} color="#8B8B9E" />
+            </TouchableOpacity>
 
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Tipo</Text>
             <View className="flex-row gap-2 mb-4">
@@ -228,17 +250,24 @@ export function EventFormSheet({ visible, selectedDate, onClose, onSave }: Event
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.8}
-              className={`bg-primary rounded-2xl py-4 items-center ${!title.trim() ? 'opacity-40' : ''}`}
-              disabled={!title.trim()}
+              className={`bg-primary rounded-2xl py-4 items-center ${!canSave ? 'opacity-40' : ''}`}
+              disabled={!canSave}
               accessibilityLabel="Salvar evento"
               accessibilityRole="button"
-              accessibilityState={{ disabled: !title.trim() }}
+              accessibilityState={{ disabled: !canSave }}
             >
               <Text className="text-white font-semibold text-base">Salvar evento</Text>
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      <DateTimePickerModal
+        visible={dateTimePickerVisible}
+        value={{ date, startTime: startTime || undefined, endTime: endTime || undefined }}
+        onClose={() => setDateTimePickerVisible(false)}
+        onConfirm={handleConfirmDateTime}
+      />
     </Modal>
   );
 }

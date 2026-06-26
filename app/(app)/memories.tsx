@@ -15,6 +15,12 @@ import {
 } from 'react-native';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+
+import { AppMenuButton } from '../../components/shared/app-menu';
+import { DatePickerModal } from '../../components/ui/date-picker-modal';
+import { PhotoSourceSheet } from '../../components/ui/photo-source-sheet';
+import { pickImageFromSource, type ImageSource } from '../../lib/utils/pick-image';
 
 import { Memory, MemoryCard, MemoryGridCard, MemoryTag } from '../../components/memories/memory-card';
 import { MemoryLightbox } from '../../components/memories/memory-lightbox';
@@ -30,6 +36,11 @@ import { CapsuleRow } from '../../lib/supabase/capsules';
 
 const VALID_TAGS: MemoryTag[] = ['viagem', 'date', 'aniversário', 'milestone', 'dia a dia'];
 const TAG_OPTIONS: MemoryTag[] = VALID_TAGS;
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
 
 function toMemory(row: MemoryRow, currentUserId: string): Memory {
   const tags = row.tags.filter((t): t is MemoryTag => VALID_TAGS.includes(t as MemoryTag));
@@ -64,7 +75,7 @@ function MemoryFormSheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: { title: string; description?: string; date: string; tags: MemoryTag[] }) => Promise<void>;
+  onSave: (data: { title: string; description?: string; date: string; tags: MemoryTag[]; photoUri?: string }) => Promise<void>;
   isSaving: boolean;
 }) {
   const slideAnim = useRef(new Animated.Value(700)).current;
@@ -73,6 +84,9 @@ function MemoryFormSheet({
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<MemoryTag[]>([]);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [sourceSheetVisible, setSourceSheetVisible] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -85,7 +99,7 @@ function MemoryFormSheet({
         Animated.timing(slideAnim, { toValue: 700, duration: 250, useNativeDriver: true }),
         Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
-      setTitle(''); setDescription(''); setDate(''); setSelectedTags([]);
+      setTitle(''); setDescription(''); setDate(''); setSelectedTags([]); setPhotoUri(null);
     }
   }, [visible]);
 
@@ -95,6 +109,11 @@ function MemoryFormSheet({
     );
   }
 
+  async function handlePickSource(source: ImageSource) {
+    const uri = await pickImageFromSource(source);
+    if (uri) setPhotoUri(uri);
+  }
+
   async function handleSave() {
     if (!title.trim()) return;
     await onSave({
@@ -102,6 +121,7 @@ function MemoryFormSheet({
       description: description.trim() || undefined,
       date: date.trim() || new Date().toISOString().slice(0, 10),
       tags: selectedTags.length ? selectedTags : ['dia a dia'],
+      photoUri: photoUri ?? undefined,
     });
     onClose();
   }
@@ -128,10 +148,25 @@ function MemoryFormSheet({
           <ScrollView className="px-5" contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
             <TouchableOpacity
               activeOpacity={0.7}
-              className="h-32 bg-surface border-2 border-dashed border-white/20 rounded-2xl items-center justify-center gap-2 mb-4"
+              onPress={() => setSourceSheetVisible(true)}
+              className="h-32 bg-surface border-2 border-dashed border-white/20 rounded-2xl items-center justify-center gap-2 mb-4 overflow-hidden"
+              accessibilityRole="button"
+              accessibilityLabel={photoUri ? 'Trocar foto da memória' : 'Adicionar foto da memória'}
             >
-              <Feather name="camera" size={28} color="#8B8B9E" />
-              <Text className="text-text-muted text-sm">Toque para adicionar foto</Text>
+              {photoUri ? (
+                <>
+                  <Image source={{ uri: photoUri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                  <View className="absolute bottom-2 right-2 bg-black/60 rounded-full px-3 py-1 flex-row items-center gap-1.5">
+                    <Feather name="edit-2" size={12} color="#fff" />
+                    <Text className="text-white text-xs">Trocar</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Feather name="camera" size={28} color="#8B8B9E" />
+                  <Text className="text-text-muted text-sm">Toque para adicionar foto</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TextInput
@@ -151,13 +186,18 @@ function MemoryFormSheet({
               className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-3"
               style={{ height: 80 }}
             />
-            <TextInput
-              value={date}
-              onChangeText={setDate}
-              placeholder="Data (AAAA-MM-DD)"
-              placeholderTextColor="#8B8B9E"
-              className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-4"
-            />
+            <TouchableOpacity
+              onPress={() => setDatePickerVisible(true)}
+              activeOpacity={0.7}
+              className="bg-surface border border-white/10 rounded-2xl px-4 py-3 mb-4 flex-row items-center justify-between"
+              accessibilityRole="button"
+              accessibilityLabel="Selecionar data da memória"
+            >
+              <Text className={`text-sm ${date ? 'text-text-primary' : 'text-text-muted'}`}>
+                {date ? formatDateLabel(date) : 'Selecionar data'}
+              </Text>
+              <Feather name="calendar" size={18} color="#8B8B9E" />
+            </TouchableOpacity>
 
             <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-2">Tags</Text>
             <View className="flex-row flex-wrap gap-2 mb-6">
@@ -193,6 +233,19 @@ function MemoryFormSheet({
           </ScrollView>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      <PhotoSourceSheet
+        visible={sourceSheetVisible}
+        onClose={() => setSourceSheetVisible(false)}
+        onPick={handlePickSource}
+      />
+      <DatePickerModal
+        visible={datePickerVisible}
+        value={date || undefined}
+        title="Data da memória"
+        onClose={() => setDatePickerVisible(false)}
+        onConfirm={setDate}
+      />
     </Modal>
   );
 }
@@ -214,6 +267,8 @@ function CapsuleFormSheet({
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const [message, setMessage] = useState('');
   const [revealDate, setRevealDate] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (visible) {
@@ -269,13 +324,18 @@ function CapsuleFormSheet({
               className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-3"
               style={{ height: 120 }}
             />
-            <TextInput
-              value={revealDate}
-              onChangeText={setRevealDate}
-              placeholder="Data de revelação (AAAA-MM-DD)"
-              placeholderTextColor="#8B8B9E"
-              className="bg-surface border border-white/10 rounded-2xl px-4 py-3 text-text-primary text-sm mb-6"
-            />
+            <TouchableOpacity
+              onPress={() => setDatePickerVisible(true)}
+              activeOpacity={0.7}
+              className="bg-surface border border-white/10 rounded-2xl px-4 py-3 mb-6 flex-row items-center justify-between"
+              accessibilityRole="button"
+              accessibilityLabel="Selecionar data de revelação"
+            >
+              <Text className={`text-sm ${revealDate ? 'text-text-primary' : 'text-text-muted'}`}>
+                {revealDate ? formatDateLabel(revealDate) : 'Data de revelação'}
+              </Text>
+              <Feather name="lock" size={18} color="#9B59B6" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.8}
@@ -291,6 +351,15 @@ function CapsuleFormSheet({
           </ScrollView>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      <DatePickerModal
+        visible={datePickerVisible}
+        value={revealDate || undefined}
+        title="Data de revelação"
+        minDate={todayStr}
+        onClose={() => setDatePickerVisible(false)}
+        onConfirm={setRevealDate}
+      />
     </Modal>
   );
 }
@@ -319,8 +388,8 @@ export default function MemoriesScreen() {
     ? memories
     : memories.filter((m) => m.tags.includes(filterTag as MemoryTag));
 
-  async function handleSaveMemory(data: { title: string; description?: string; date: string; tags: MemoryTag[] }) {
-    await addMemory({ title: data.title, description: data.description, date: data.date, tags: data.tags });
+  async function handleSaveMemory(data: { title: string; description?: string; date: string; tags: MemoryTag[]; photoUri?: string }) {
+    await addMemory({ title: data.title, description: data.description, date: data.date, tags: data.tags, photoUri: data.photoUri });
   }
 
   async function handleSaveCapsule(data: { message: string; revealAt: string }) {
@@ -347,7 +416,8 @@ export default function MemoriesScreen() {
       {/* Header */}
       <View className="px-5 pt-14 pb-3">
         <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center gap-2">
+            <AppMenuButton />
             <Text className="text-text-primary text-2xl font-bold">Memórias</Text>
           </View>
           <TouchableOpacity

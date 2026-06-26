@@ -606,6 +606,72 @@ feat(m14): add Duo AI chat, love languages quiz, affiliate products and drawer n
 
 ---
 
+## M15 — Navegação Hamburger + Calendário/Memórias Redesign
+
+**Branch:** `feat/m15-nav-and-pickers`
+**Objetivo:** Adicionar um menu hambúrguer animado no topo, redesenhar a seleção de data/hora na criação de evento (calendário + slots de horário) e corrigir o seletor de foto + redesenhar a data nas memórias (popup de calendário).
+
+> ⚠️ **Adaptação dos prompts de referência:** os dois prompts fornecidos pelo usuário são componentes **web/shadcn** (`react-day-picker`, `react-aria-components`, `@radix-ui/react-slot`, `"use client"`, DOM). **Nenhum roda em React Native/Expo Go.** O plano **recria o mesmo layout/UX nativamente** com nossa stack (NativeWind v4, Reanimated v3.16.x, primitivos RN, paleta DuoLove dark) — não copia os arquivos `.tsx` de referência. Sem dependências web novas.
+
+### Feature 1 — Menu Hambúrguer animado (topo esquerdo)
+
+A **tab bar inferior foi removida** (ajuste pós-review): o `app/(app)/_layout.tsx` virou um `Stack` headerless e o hambúrguer é a única navegação. Overlay próprio em React Native (sem `@react-navigation/drawer`, que exige EAS Build), funcionando no Expo Go.
+
+- [x] Criar `components/shared/app-menu.tsx` (exporta `AppMenu` overlay + `AppMenuButton`):
+  - [x] Botão de 3 linhas (ícone `menu` do Feather) no canto superior esquerdo
+  - [x] Painel deslizante da esquerda com animação de abre/fecha (RN `Animated`: translateX spring + fade no backdrop — Expo Go safe, sem Reanimated)
+  - [x] Backdrop escuro tocável para fechar; toque fora fecha o menu
+  - [x] Lista com todos os itens de navegação (Início, Calendário, Duo, Memórias, Produtos, Amor, Config.) com ícones e destaque do item ativo (via `usePathname`)
+  - [x] Header do painel: avatar/nome do casal + badge Premium (visual reaproveitado de `drawer-content.tsx`)
+  - [x] Navegação via `router.navigate` do Expo Router ao tocar num item (evita empilhar telas de topo)
+- [x] Integrar o botão hambúrguer no topo de todas as telas autenticadas (dashboard, calendário, Duo, memórias, produtos, amor, config), respeitando safe-area; overlay montado 1× no `app/(app)/_layout.tsx`. Estado compartilhado em `stores/menu-store.ts` (Zustand)
+- [x] Acessibilidade: `accessibilityRole="button"` e `accessibilityLabel` no botão e nos itens
+- [x] **Tab bar inferior removida** — `Tabs` substituído por `Stack` headerless; hambúrguer é a navegação principal
+
+### Feature 2 — Criar Evento: seletor de data + horário (estilo "calendar with time presets")
+
+**Ajuste pós-review:** o usuário pediu **um único campo** que abre um **popup** (calendário + horários juntos) e, após confirmar, exibe a data/horário escolhidos. Removidos os blocos inline e o card de resumo separado.
+
+- [x] Criar `components/ui/calendar-grid.tsx` — calendário mensal nativo reutilizável:
+  - [x] Grid de dias com navegação de mês (chevrons), dia atual destacado, dia selecionado em rosa (`#E91E8C`)
+  - [x] Dias fora do mês esmaecidos; semana começando em Dom (pt-BR)
+  - [x] Props: `selectedDate`, `onSelectDate`, `minDate?`, `markedDates?`
+- [x] Criar `components/ui/time-slot-picker.tsx`:
+  - [x] Lista de horários roláveis (horizontal) em incrementos de 30 min, slot selecionado em destaque
+  - [x] Slots separados para início e fim (fim com `minTime` = horário de início)
+- [x] Criar `components/ui/datetime-picker-modal.tsx` — popup único: `CalendarGrid` + 2 `TimeSlotPicker` (início/fim) + botão Confirmar
+- [x] Refatorar `components/calendar/event-form-sheet.tsx`:
+  - [x] **Um único campo/botão** que abre o popup; após confirmar, o botão exibe "{dia} · {início}–{fim}"
+  - [x] Sem campo separado mostrando a data; sem card de resumo
+  - [x] Mapeamento para `toEventInsert` em `calendar.tsx` mantido (formato `YYYY-MM-DDTHH:mm:00`)
+- [x] Identidade visual dark DuoLove (card `#1A1A2E`, texto creme, bordas arredondadas)
+
+### Feature 3 — Memórias: seletor de foto + data via popup de calendário
+
+- [x] **Bug do seletor de foto:** corrigir o fluxo "adicionar foto" para abrir opções de origem:
+  - [x] Action sheet nativo (`components/ui/photo-source-sheet.tsx`) com **Câmera**, **Galeria** e **Arquivos**
+  - [x] Lógica em `lib/utils/pick-image.ts`: Câmera `launchCameraAsync` + `requestCameraPermissionsAsync`; Galeria `launchImageLibraryAsync` + `requestMediaLibraryPermissionsAsync`; Arquivos `DocumentPicker.getDocumentAsync({ type: 'image/*' })`
+  - [x] Preview da imagem selecionada antes de salvar (com botão "Trocar"); permissão negada → Alert com atalho para configurações
+  - [x] `photoUri` encaminhado ao `addMemory` (hook já fazia upload via `uploadMemoryPhoto`)
+  - [x] **Fix upload `StorageUnknownError: Network request failed`**: `fetch(uri).blob()` é instável em RN. `uploadMemoryPhoto` agora lê o arquivo como base64 (`expo-file-system` → `new File(uri).base64()`) e envia um `ArrayBuffer` (`base64-arraybuffer` decode). Deps novas: `expo-file-system@~19.0.23`, `base64-arraybuffer@^1.0.2`
+- [x] **Data via popup de calendário:** o campo de data deixa de ser input de texto:
+  - [x] Campo clicável que abre `components/ui/date-picker-modal.tsx` (reusa `CalendarGrid`, estilo dark com botão Confirmar)
+  - [x] Ao confirmar, fecha o popup e preenche a data formatada (pt-BR)
+- [x] Aplicado no form de memória **e** no form de cápsula do tempo (reveal date com `minDate` = hoje) em `memories.tsx`
+- [x] Plugins/permissões no `app.json`: config plugin `expo-image-picker` com `photosPermission`/`cameraPermission` (aplicado no próximo EAS prebuild)
+
+### Notas de compatibilidade Expo Go
+- Reanimated permanece em `~3.16.x`; menu e modais usam RN `Animated` (não Reanimated) — compatível com Expo Go.
+- Não foram introduzidas libs web — tudo nativo (sem `react-day-picker`/`react-aria-components`/`@radix-ui`).
+- `expo-image-picker@~17.0.11` e `expo-document-picker@~14.0.8` instalados via `expo install` (compatíveis com SDK 54). ⚠️ Câmera/arquivos exigem módulo nativo: funcionam no Expo Go para galeria; câmera real e permissões plenas só após EAS Build.
+
+### Commit final
+```
+feat(m15): add hamburger menu, calendar+time event picker and memories photo/date pickers
+```
+
+---
+
 ## Sequência
 
 ```

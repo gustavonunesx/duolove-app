@@ -3,6 +3,7 @@ import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'reac
 import { Feather } from '@expo/vector-icons';
 import { GlassCard } from '../../components/ui/glass-card';
 import { Skeleton, SkeletonCard } from '../../components/ui/skeleton';
+import { AppMenuButton } from '../../components/shared/app-menu';
 
 import { useAuth } from '../../hooks/use-auth';
 import { useCouple } from '../../hooks/use-couple';
@@ -112,6 +113,7 @@ function AppHeader({ userName, partnerName }: { userName: string; partnerName: s
           )}
         </View>
       </View>
+      <AppMenuButton />
     </View>
   );
 }

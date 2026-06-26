@@ -178,6 +178,7 @@ Prisma foi removido do escopo. Ele só roda em Node.js server-side e não funcio
 | M12 | `feat/polish` | Animações, acessibilidade, performance | ✅ Concluída |
 | M13 | `chore/deploy` | Expo EAS Build + submissão às stores | ✅ Concluída |
 | M14 | `feat/m14-new-features` | Duo AI, Quiz Linguagens do Amor, Produtos Afiliados, Drawer | ✅ Concluída |
+| M15 | `feat/m15-nav-and-pickers` | Menu hambúrguer, seletor data+hora do evento, foto/data nas memórias | ✅ Concluída |
 
 ---
 
@@ -194,6 +195,27 @@ EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 # supabase secrets set STRIPE_SECRET_KEY=sk_live_...
 # supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 ```
+
+---
+
+## Fluxo de Trabalho por Requisição (feature/correção avulsa)
+
+Estas regras valem para qualquer pedido de feature, correção, ajuste etc. **fora** do fluxo de milestones formais.
+
+1. **Branch por requisição.** Toda vez que o usuário pedir uma feature, correção ou ajuste no projeto, criar uma branch dedicada para aquela requisição seguindo o padrão de git flow antes de escrever código:
+   - Feature nova: `git checkout -b feat/nome-descritivo`
+   - Correção de bug: `git checkout -b fix/nome-descritivo`
+   - Ajuste/refino/chore: `git checkout -b chore/nome-descritivo`
+   - Sempre criar a branch a partir de `master` atualizada.
+
+2. **Commit + PR sob comando "pode commitar".** Quando o usuário disser **"pode commitar"** ao finalizar uma feature/correção que pediu:
+   - Fazer o commit das alterações na branch da requisição, incluindo as atualizações dos arquivos de memória, `CLAUDE.md` e `docs/PLAN.md` quando relevantes.
+   - Mensagem no padrão Conventional Commits (`type(scope): description`) terminando com a linha de co-autoria.
+   - `git push -u origin <branch>`
+   - Abrir PR para `master` com `gh pr create`.
+   - **Não fazer merge automático** — apenas commit, push e PR, e aguardar instrução.
+
+3. **Gatilho "contexto".** Quando o usuário disser **"contexto"** (geralmente no início de uma nova sessão), isso significa: se contextualizar do projeto para dar seguimento de onde paramos. Ler os arquivos de memória do projeto, o `CLAUDE.md` e o `docs/PLAN.md` (principalmente estes dois), entender o estado atual e o que ficou pendente, e então aguardar o próximo pedido.
 
 ---
 

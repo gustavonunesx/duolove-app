@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { PremiumGateScreen } from '../ui/premium-gate';
+import { AppMenuButton } from '../shared/app-menu';
 import { useSubscription } from '../../hooks/use-subscription';
 import { useLoveLanguages } from '../../hooks/use-love-languages';
 
@@ -61,6 +62,9 @@ type Phase = 'intro' | 'quiz' | 'result';
 function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
+      <View className="absolute top-12 left-4 z-10">
+        <AppMenuButton />
+      </View>
       <View className="items-center mb-8">
         <View className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary items-center justify-center mb-4">
           <Feather name="heart" size={36} color="#E91E8C" />
